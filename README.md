@@ -6,7 +6,7 @@ Audio analysis service for detecting music mistakes
 
 * [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/Mac) or Docker Engine (Linux).
 * `.env` file with environment variables.
-* Deployed Kafka cluster, MongoDB, and MySQL.
+* Deployed Kafka broker, MongoDB, and MySQL.
 
 ##  Project structure 📁
 
