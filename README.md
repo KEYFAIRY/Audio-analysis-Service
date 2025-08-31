@@ -14,7 +14,7 @@ Audio analysis service for detecting music mistakes
 📁 VIDEO-WORKER-SERVICE/                # Root directory of the worker service
 │
 ├── 📁 app/                             # Main application code
-│   ├── main.py                         # Entry point: starts Kafka consumer loop
+│   ├── main.py                         # Entry point: starts Kafka consumer + FastAPI app
 │   │
 │   ├── 📁 core/                        # Core configurations
 │   │   ├── config.py                   # Environment variables (Kafka, DBs, storage path)
@@ -22,21 +22,28 @@ Audio analysis service for detecting music mistakes
 │   │   └── exceptions.py               # Custom exception definitions
 │   │
 │   ├── 📁 domain/                      # Business logic (independent of tech)
-│   │   ├── 📁 entities/                # Core entities (e.g. Video, ProcessingResult)
+│   │   ├── 📁 entities/                # Core entities (e.g., Video, ProcessingResult)
 │   │   ├── 📁 repositories/            # Repository interfaces (IMongoRepo, IMySQLRepo)
-│   │   └── 📁 services/                # Domain services (e.g. VideoProcessor, transformations)
+│   │   └── 📁 services/                # Domain services (e.g., VideoProcessor, transformations)
 │   │
 │   ├── 📁 application/                 # Application layer (use case orchestration)
-│   │   ├── 📁 use_cases/               # Use cases (e.g. process_video_message.py)
+│   │   ├── 📁 use_cases/               # Use cases (e.g., process_video_message.py)
 │   │   ├── 📁 dto/                     # Data Transfer Objects
 │   │   └── 📁 interfaces/              # Application-level interfaces
 │   │
 │   ├── 📁 infrastructure/              # Technical implementations
 │   │   ├── 📁 kafka/                   # Kafka consumer and producer
 │   │   ├── 📁 database/                # Database adapters
-│   │   │   └── 📁 models/              # Databases models
+│   │   │   └── 📁 models/              # Database models
 │   │   ├── 📁 storage/                 # Local file system access (read videos)
-│   │   └── 📁 repositories/            # Concrete repo implementations
+│   │   └── 📁 repositories/            # Concrete repository implementations
+│   │
+│   ├── 📁 presentation/               # Presentation layer (API and external interfaces)
+│   │   ├── 📁 api/                    # REST API endpoints
+│   │   │   ├── 📁 v1/                 # API v1 endpoints
+│   │   │   └── dependencies.py        # Shared dependencies (DI)
+│   │   ├── 📁 schemas/                # Pydantic schemas (e.g., error_schema.py)
+│   │   └── 📁 middleware/             # Custom middleware (CORS, logging, error handling)
 │   │
 │   └── 📁 shared/                      # Shared utilities
 │       ├── constants.py                # Global constants
@@ -46,7 +53,7 @@ Audio analysis service for detecting music mistakes
 ├── 📁 workers/                         # Worker processes
 │   └── video_consumer.py               # Kafka consumer loop that triggers use cases
 │
-├── 📁 tests/                           # Unit tests 
+├── 📁 tests/                           # Unit tests
 │   ├── 📁 domain/
 │   ├── 📁 application/
 │   └── 📁 infrastructure/
@@ -58,7 +65,7 @@ Audio analysis service for detecting music mistakes
 ├── Dockerfile                          # Instructions to build Docker image
 ├── docker-compose.yml                  # Runs only this service container
 ├── requirements.txt                    # Python dependencies
-└── README.md                           # Project documentation
+└── README.md                            # Project documentation
 
 ```
 
