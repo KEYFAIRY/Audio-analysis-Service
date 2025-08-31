@@ -34,8 +34,7 @@ Audio analysis service for detecting music mistakes
 │   ├── 📁 infrastructure/              # Technical implementations
 │   │   ├── 📁 kafka/                   # Kafka consumer and producer
 │   │   ├── 📁 database/                # Database adapters
-│   │   │   ├── mongo_repository.py     # MongoDB repository implementation
-│   │   │   └── mysql_repository.py     # MySQL repository implementation
+│   │   │   └── 📁 models/              # Databases models
 │   │   ├── 📁 storage/                 # Local file system access (read videos)
 │   │   └── 📁 repositories/            # Concrete repo implementations
 │   │
