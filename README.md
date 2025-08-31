@@ -47,8 +47,10 @@ Audio analysis service for detecting music mistakes
 ├── 📁 workers/                         # Worker processes
 │   └── video_consumer.py               # Kafka consumer loop that triggers use cases
 │
-├── 📁 tests/                           # Test suite
-│   ├── unit/                           # Unit tests (isolated components)
+├── 📁 tests/                           # Unit tests 
+│   ├── 📁 domain/
+│   ├── 📁 application/
+│   └── 📁 infrastructure/
 │
 ├── 📁 scripts/                         # Helper scripts
 │   └── run_worker.sh                   # Script to start the worker
