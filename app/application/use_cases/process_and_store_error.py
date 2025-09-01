@@ -1,10 +1,10 @@
 from typing import List
-from app.application.dto.kafka_message_dto import KafkaMessageDTO
+from app.infrastructure.kafka.kafka_message import KafkaMessage, KafkaMessageDTO
 from app.application.dto.musical_error_dto import MusicalErrorDTO
 from app.application.dto.practice_data_dto import PracticeDataDTO
 from app.domain.services.musical_error_service import MusicalErrorService
 from app.domain.services.mongo_practice_service import MongoPracticeService
-# from app.infrastructure.kafka.kafka_producer import KafkaProducer
+from app.infrastructure.kafka.kafka_producer import KafkaProducer
 from app.core.exceptions import DatabaseConnectionException, ValidationException
 import logging
 
@@ -17,11 +17,11 @@ class ProcessAndStoreErrorUseCase:
         self, 
         music_service: MusicalErrorService,
         mongo_service: MongoPracticeService,
-        # kafka_producer: KafkaProducer
+        kafka_producer: KafkaProducer
     ):
         self.music_service = music_service
         self.mongo_service = mongo_service
-        # self.kafka_producer = kafka_producer
+        self.kafka_producer = kafka_producer
 
     async def execute(self, data: PracticeDataDTO) -> List[MusicalErrorDTO]:
         if not data.uid or not data.practice_id or not data.video_route:
@@ -41,13 +41,15 @@ class ProcessAndStoreErrorUseCase:
             logger.info("Marked audio as done in Mongo for uid=%s, practice_id=%s", data.uid, data.practice_id)
 
             # 3️ Publicar mensaje en Kafka (si el producer está habilitado)
-            kafka_message = KafkaMessageDTO(
+            kafka_message = KafkaMessage(
                 uid=data.uid,
                 practice_id=data.practice_id,
                 message="audio_done"
             )
-            # await self.kafka_producer.publish_message(topic="audio_done_topic", message=kafka_message)
+            
             logger.debug("Prepared Kafka message: %s", kafka_message)
+
+            await self.kafka_producer.publish_message(topic="audio_done_topic", message=kafka_message)
 
             # 4️ Mapear a DTOs
             return [

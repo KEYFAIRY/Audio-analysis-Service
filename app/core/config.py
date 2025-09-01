@@ -21,7 +21,6 @@ class Settings(BaseSettings):
     KAFKA_BROKER: str
     KAFKA_INPUT_TOPIC: str
     KAFKA_OUTPUT_TOPIC: str
-    KAFKA_GROUP_ID: str
     KAFKA_AUTO_OFFSET_RESET: str = "earliest"
 
     # MySQL

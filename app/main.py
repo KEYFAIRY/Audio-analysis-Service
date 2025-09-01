@@ -5,16 +5,15 @@ import logging
 import asyncio
 
 from app.core.config import settings
-from app.infrastructure.kafka.consumer import start_kafka_consumer
+from app.infrastructure.kafka.kafka_consumer import start_kafka_consumer
+from app.infrastructure.kafka.kafka_producer import KafkaProducer
 from app.presentation.middleware.exception_hanler import (
-    music_error_service_exception_handler,
     database_connection_exception_handler,
     validation_exception_handler,
     request_validation_exception_handler,
     general_exception_handler,
 )
 from app.core.exceptions import (
-    MusicErrorServiceException,
     DatabaseConnectionException,
     ValidationException,
 )
@@ -32,16 +31,26 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.APP_ENV}")
 
+    # Inicializar Kafka Producer
+    producer = KafkaProducer(bootstrap_servers=settings.KAFKA_BROKER)
+    await producer.start()
+
+    # Inicializar Kafka Consumer
     loop = asyncio.get_event_loop()
     consumer_task = loop.create_task(start_kafka_consumer())
 
     yield
 
+    # Shutdown ordenado
     consumer_task.cancel()
     try:
         await consumer_task
     except asyncio.CancelledError:
         logger.info("Kafka consumer stopped")
+
+    await producer.stop()
+    logger.info("Kafka producer stopped")
+
 
 
 def create_application() -> FastAPI:
@@ -61,7 +70,6 @@ def create_application() -> FastAPI:
     )
 
     # Exception Handlers
-    app.add_exception_handler(MusicErrorServiceException, music_error_service_exception_handler)
     app.add_exception_handler(DatabaseConnectionException, database_connection_exception_handler)
     app.add_exception_handler(ValidationException, validation_exception_handler)
     app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
