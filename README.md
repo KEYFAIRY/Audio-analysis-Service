@@ -11,7 +11,7 @@ Audio analysis service for detecting music mistakes
 ##  Project structure 📁
 
 ```bash
-📁 VIDEO-WORKER-SERVICE/                # Root directory of the worker service
+📁 AUDIO-ANALYSIS-SERVICE/                # Root directory of the worker service
 │
 ├── 📁 app/                             # Main application code
 │   ├── main.py                         # Entry point: starts Kafka consumer + FastAPI app

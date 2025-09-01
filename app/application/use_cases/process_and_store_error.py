@@ -1,4 +1,5 @@
 from typing import List
+from app.application.dto.kafka_message_dto import KafkaMessageDTO
 from app.application.dto.musical_error_dto import MusicalErrorDTO
 from app.application.dto.practice_data_dto import PracticeDataDTO
 from app.domain.services.musical_error_service import MusicalErrorService
@@ -15,7 +16,7 @@ class ProcessAndStoreErrorUseCase:
     def __init__(
         self, 
         music_service: MusicalErrorService,
-        mongo_service: MongoPracticeService
+        mongo_service: MongoPracticeService,
         # kafka_producer: KafkaProducer
     ):
         self.music_service = music_service
@@ -24,31 +25,39 @@ class ProcessAndStoreErrorUseCase:
 
     async def execute(self, data: PracticeDataDTO) -> List[MusicalErrorDTO]:
         if not data.uid or not data.practice_id or not data.video_route:
-            logger.warning("Invalid practice data received")
+            logger.warning(
+                "Validation failed: uid=%s, practice_id=%s, video_route=%s",
+                data.uid, data.practice_id, data.video_route
+            )
             raise ValidationException("uid, practice_id, and video_route are required")
         
         try:
             # 1️ Procesar y almacenar errores en MySQL
             errors = await self.music_service.process_and_store_error(data)
+            logger.info("Stored %d errors for practice_id=%s", len(errors), data.practice_id)
 
             # 2️ Actualizar Mongo usando el servicio
             await self.mongo_service.mark_audio_done(uid=str(data.uid), id_practice=data.practice_id)
+            logger.info("Marked audio as done in Mongo for uid=%s, practice_id=%s", data.uid, data.practice_id)
 
-            # 3️ Publicar mensaje en Kafka
-            kafka_message = {
-                "uid": data.uid,
-                "practice_id": data.practice_id,
-                "status": "audio_done"
-            }
-            #await self.kafka_producer.publish_message(topic="audio_done_topic", message=kafka_message)
+            # 3️ Publicar mensaje en Kafka (si el producer está habilitado)
+            kafka_message = KafkaMessageDTO(
+                uid=data.uid,
+                practice_id=data.practice_id,
+                message="audio_done"
+            )
+            # await self.kafka_producer.publish_message(topic="audio_done_topic", message=kafka_message)
+            logger.debug("Prepared Kafka message: %s", kafka_message)
 
             # 4️ Mapear a DTOs
-            return [MusicalErrorDTO(
-                min_sec=e.min_sec,
-                note_played=e.note_played,
-                note_correct=e.note_correct
-            ) for e in errors]
+            return [
+                MusicalErrorDTO(
+                    min_sec=e.min_sec,
+                    note_played=e.note_played,
+                    note_correct=e.note_correct
+                ) for e in errors
+            ]
 
         except Exception as e:
-            logger.error(f"Error processing and storing practice: {e}")
+            logger.error("Error processing and storing practice", exc_info=True)
             raise DatabaseConnectionException(f"Failed to process practice: {str(e)}")

@@ -4,18 +4,40 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class MongoRepo(IMongoRepo):
+    """Concrete implementation of IMongoRepo using MongoDB."""
+
     def __init__(self):
-        self.db = mongo_connection.connect()
-        self.users_collection = self.db["users"]
+        try:
+            self.db = mongo_connection.connect()
+            self.users_collection = self.db["users"]
+            logger.info("MongoRepo initialized successfully")
+        except Exception as e:
+            logger.exception("Error initializing MongoRepo")
+            raise
 
     async def mark_practice_audio_done(self, uid: str, id_practice: int) -> bool:
-        result = await self.users_collection.update_one(
-            {"uid": uid, "practices.id_practice": id_practice},
-            {"$set": {"practices.$.audio_done": True}}
-        )
-        if result.modified_count == 1:
-            logger.info(f"Updated audio_done for uid={uid}, practice={id_practice}")
-            return True
-        logger.warning(f"No document updated for uid={uid}, practice={id_practice}")
-        return False
+        try:
+            result = await self.users_collection.update_one(
+                {"uid": uid, "practices.id_practice": id_practice},
+                {"$set": {"practices.$.audio_done": True}}
+            )
+            if result.modified_count == 1:
+                logger.info(
+                    "Updated audio_done for uid=%s, practice=%s", uid, id_practice
+                )
+                return True
+
+            logger.warning(
+                "No document updated for uid=%s, practice=%s", uid, id_practice
+            )
+            return False
+
+        except Exception as e:
+            logger.exception(
+                "Error updating audio_done for uid=%s, practice=%s",
+                uid,
+                id_practice,
+            )
+            raise

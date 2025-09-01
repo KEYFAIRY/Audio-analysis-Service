@@ -3,6 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class MongoPracticeService:
     """Servicio de dominio para operaciones sobre prácticas en Mongo"""
 
@@ -13,8 +14,20 @@ class MongoPracticeService:
         try:
             updated = await self.mongo_repo.mark_practice_audio_done(uid, id_practice)
             if not updated:
-                logger.warning(f"Mongo update failed for uid={uid}, practice={id_practice}")
+                logger.warning(
+                    "Mongo update failed",
+                    extra={"uid": uid, "practice_id": id_practice}
+                )
+            else:
+                logger.info(
+                    "Mongo update successful",
+                    extra={"uid": uid, "practice_id": id_practice}
+                )
             return updated
         except Exception as e:
-            logger.error(f"Error updating audio_done in Mongo: {e}")
+            logger.error(
+                "Error updating audio_done in Mongo",
+                exc_info=True,
+                extra={"uid": uid, "practice_id": id_practice}
+            )
             raise

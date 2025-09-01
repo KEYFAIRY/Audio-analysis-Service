@@ -1,0 +1,95 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+
+from app.core.config import settings
+from app.infrastructure.kafka.consumer import start_kafka_consumer
+from app.presentation.middleware.exception_hanler import (
+    music_error_service_exception_handler,
+    database_connection_exception_handler,
+    validation_exception_handler,
+    request_validation_exception_handler,
+    general_exception_handler,
+)
+from app.core.exceptions import (
+    MusicErrorServiceException,
+    DatabaseConnectionException,
+    ValidationException,
+)
+from fastapi.exceptions import RequestValidationError
+
+from app.core.logging_config import configure_logging
+
+# CConfigure logging
+configure_logging()
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+    logger.info(f"Environment: {settings.APP_ENV}")
+
+    loop = asyncio.get_event_loop()
+    consumer_task = loop.create_task(start_kafka_consumer())
+
+    yield
+
+    consumer_task.cancel()
+    try:
+        await consumer_task
+    except asyncio.CancelledError:
+        logger.info("Kafka consumer stopped")
+
+
+def create_application() -> FastAPI:
+    app = FastAPI(
+        title=settings.APP_NAME,
+        version=settings.APP_VERSION,
+        lifespan=lifespan,
+    )
+
+    # CORS
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Exception Handlers
+    app.add_exception_handler(MusicErrorServiceException, music_error_service_exception_handler)
+    app.add_exception_handler(DatabaseConnectionException, database_connection_exception_handler)
+    app.add_exception_handler(ValidationException, validation_exception_handler)
+    app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
+    app.add_exception_handler(Exception, general_exception_handler)
+
+    @app.get("/health")
+    async def health_check():
+        return {
+            "status": "healthy",
+            "service": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+            "environment": settings.APP_ENV,
+        }
+
+    return app
+
+
+app = create_application()
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    logger.info(f"Starting server on {settings.HOST}:{settings.PORT}")
+    uvicorn.run(
+        "app.main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.RELOAD,
+        log_level=settings.LOG_LEVEL.lower(),
+    )

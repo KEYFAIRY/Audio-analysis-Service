@@ -1,8 +1,9 @@
 import os
-import logging
 from motor.motor_asyncio import AsyncIOMotorClient
+import logging
 
 logger = logging.getLogger(__name__)
+
 
 class MongoConnection:
     """MongoDB connection singleton"""
@@ -18,17 +19,20 @@ class MongoConnection:
             try:
                 self.client = AsyncIOMotorClient(self.mongo_uri)
                 self.db = self.client[self.mongo_db_name]
-                logger.info("MongoDB connection established")
+                logger.info(
+                    "MongoDB connection established",
+                    extra={"db_name": self.mongo_db_name, "uri": self.mongo_uri},
+                )
             except Exception as e:
-                logger.error(f"Error connecting to MongoDB: {e}")
+                logger.exception("Error connecting to MongoDB")
                 raise RuntimeError(f"Failed to connect to MongoDB: {str(e)}")
         return self.db
 
     async def close(self):
         if self.client:
             self.client.close()
-            logger.info("MongoDB connection closed")
+            logger.info("MongoDB connection closed", extra={"db_name": self.mongo_db_name})
 
 
-# Instancia global
+# Global instance
 mongo_connection = MongoConnection()
