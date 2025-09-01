@@ -57,10 +57,15 @@ class MusicalErrorService:
             )
 
             # TODO: Implementar análisis de video y extracción de errores
+            # 1. obtener el video en video_route
+            # 2. convertir el video en audio
+            # 3. analizar el audio y extraer errores
+            # 4. guardar cada uno de los errores en la base de datos
             # Ejemplo de guardado:
             # error = MusicalError(practice_id=practice_id, description="Error de ritmo")
             # await self.music_repo.create(error)
-
+            
+            # stored_errors solamente se usó para colocar algo en los logs
             stored_errors: List[MusicalError] = []
 
             logger.info(
