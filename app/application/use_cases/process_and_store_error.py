@@ -1,9 +1,9 @@
 from typing import List
-from app.infrastructure.kafka.kafka_message import KafkaMessage, KafkaMessageDTO
 from app.application.dto.musical_error_dto import MusicalErrorDTO
 from app.application.dto.practice_data_dto import PracticeDataDTO
 from app.domain.services.musical_error_service import MusicalErrorService
 from app.domain.services.mongo_practice_service import MongoPracticeService
+from app.infrastructure.kafka.kafka_message import KafkaMessage
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
 from app.core.exceptions import DatabaseConnectionException, ValidationException
 import logging

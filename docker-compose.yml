@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  audio-analysis-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audio-analysis-service
+    ports:
+      - "${AUDIO_ANALYSIS_SERVICE_PORT:-8090}:8090"  # Puerto interno y externo 8090
+    environment:
+      ENVIRONMENT: ${APP_ENV:-development}
+
+      # Kafka
+      KAFKA_BROKER: ${KAFKA_BROKER}
+      KAFKA_INPUT_TOPIC: ${KAFKA_INPUT_TOPIC}
+      KAFKA_OUTPUT_TOPIC: ${KAFKA_OUTPUT_TOPIC}
+      KAFKA_GROUP_ID: ${KAFKA_GROUP_ID}
+      KAFKA_AUTO_OFFSET_RESET: ${KAFKA_AUTO_OFFSET_RESET}
+
+      # MySQL
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DB: ${MYSQL_DB}
+
+      # MongoDB
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_USER: ${MONGO_USER}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_DB: ${MONGO_DB}
+
+      # Storage path
+      STORAGE_PATH: /app/storage/videos
+    volumes:
+      - ./storage:/app/storage/videos
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true

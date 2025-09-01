@@ -7,6 +7,7 @@ import asyncio
 from app.core.config import settings
 from app.infrastructure.kafka.kafka_consumer import start_kafka_consumer
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
+from app.presentation.api.v1.musical_error import router as musical_error
 from app.presentation.middleware.exception_hanler import (
     database_connection_exception_handler,
     validation_exception_handler,
@@ -74,7 +75,7 @@ def create_application() -> FastAPI:
     app.add_exception_handler(ValidationException, validation_exception_handler)
     app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
     app.add_exception_handler(Exception, general_exception_handler)
-
+    
     @app.get("/health")
     async def health_check():
         return {
@@ -83,6 +84,8 @@ def create_application() -> FastAPI:
             "version": settings.APP_VERSION,
             "environment": settings.APP_ENV,
         }
+    
+    app.include_router(musical_error)
 
     return app
 
