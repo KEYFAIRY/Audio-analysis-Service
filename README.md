@@ -22,12 +22,12 @@ Audio analysis service for detecting music mistakes
 │   │   └── exceptions.py               # Custom exception definitions
 │   │
 │   ├── 📁 domain/                      # Business logic (independent of tech)
-│   │   ├── 📁 entities/                # Core entities (e.g., Video, ProcessingResult)
-│   │   ├── 📁 repositories/            # Repository interfaces (IMongoRepo, IMySQLRepo)
-│   │   └── 📁 services/                # Domain services (e.g., VideoProcessor, transformations)
+│   │   ├── 📁 entities/                # Core entities (e.g., MusicalError)
+│   │   ├── 📁 repositories/            # Repository interfaces (e.g., IMongoRepo, IMySQLRepo)
+│   │   └── 📁 services/                # Domain services (e.g., MusicalErrorService)
 │   │
 │   ├── 📁 application/                 # Application layer (use case orchestration)
-│   │   ├── 📁 use_cases/               # Use cases (e.g., process_video_message.py)
+│   │   ├── 📁 use_cases/               # Use cases (e.g., process_and_store_error.py)
 │   │   ├── 📁 dto/                     # Data Transfer Objects
 │   │   └── 📁 interfaces/              # Application-level interfaces
 │   │
@@ -42,7 +42,7 @@ Audio analysis service for detecting music mistakes
 │   │   ├── 📁 api/                    # REST API endpoints
 │   │   │   ├── 📁 v1/                 # API v1 endpoints
 │   │   │   └── dependencies.py        # Shared dependencies (DI)
-│   │   ├── 📁 schemas/                # Pydantic schemas (e.g., error_schema.py)
+│   │   ├── 📁 schemas/                # Pydantic schemas (e.g., musical_error_schema.py)
 │   │   └── 📁 middleware/             # Custom middleware (CORS, logging, error handling)
 │   │
 │   └── 📁 shared/                      # Shared utilities
@@ -65,7 +65,7 @@ Audio analysis service for detecting music mistakes
 ├── Dockerfile                          # Instructions to build Docker image
 ├── docker-compose.yml                  # Runs only this service container
 ├── requirements.txt                    # Python dependencies
-└── README.md                            # Project documentation
+└── README.md                           # Project documentation
 
 ```
 
