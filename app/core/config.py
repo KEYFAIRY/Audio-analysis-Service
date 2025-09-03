@@ -59,7 +59,8 @@ class Settings(BaseSettings):
         )
 
     # Storage
-    STORAGE_PATH: str
+    HOST_VIDEO_PATH: str
+    CONTAINER_VIDEO_PATH: str
 
     # Logging
     LOG_LEVEL: str = "INFO"
