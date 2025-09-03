@@ -50,16 +50,13 @@ Audio analysis service for detecting music mistakes
 │       ├── enums.py                    # Enumerations
 │       └── utils.py                    # Helper functions
 │
-├── 📁 workers/                         # Worker processes
-│   └── video_consumer.py               # Kafka consumer loop that triggers use cases
-│
 ├── 📁 tests/                           # Unit tests
 │   ├── 📁 domain/
 │   ├── 📁 application/
 │   └── 📁 infrastructure/
 │
 ├── 📁 scripts/                         # Helper scripts
-│   └── run_worker.sh                   # Script to start the worker
+│   └── start.sh                        # Script to start the service
 │
 ├── .env                                # Environment variables (not committed to Git)
 ├── Dockerfile                          # Instructions to build Docker image
