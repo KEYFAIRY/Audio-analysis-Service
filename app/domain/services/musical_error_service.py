@@ -56,7 +56,7 @@ class MusicalErrorService:
                 },
             )
 
-            # TODO: Implementar análisis de video y extracción de errores
+            # TODO: Implementar análisis de audio y extracción de errores
             # 1. obtener el video en video_route
             # 2. convertir el video en audio
             # 3. analizar el audio y extraer errores
