@@ -14,8 +14,8 @@ class Settings(BaseSettings):
 
     # Servidor FastAPI
     HOST: str = "0.0.0.0"
-    PORT: int = Field(default=8000, alias="VIDEO_WORKER_SERVICE_PORT")
     RELOAD: bool = False
+    AUDIO_ANALYSIS_SERVICE_PORT: int
 
     # Kafka
     KAFKA_BROKER: str
