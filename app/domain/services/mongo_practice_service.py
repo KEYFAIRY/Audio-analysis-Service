@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 
 class MongoPracticeService:
-    """Servicio de dominio para operaciones sobre prácticas en Mongo"""
+    """Domain service for operations on practices in MongoDB"""
 
     def __init__(self, mongo_repo: IMongoRepo):
         self.mongo_repo = mongo_repo

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class MusicalErrorService:
-    """Servicio de dominio para gestión de errores musicales"""
+    """Domain service for management of musical errors"""
 
     def __init__(self, music_repo: IMySQLRepo):
         self.music_repo = music_repo

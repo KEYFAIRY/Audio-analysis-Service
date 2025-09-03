@@ -4,10 +4,10 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    """Configuración del Video Worker Service"""
+    """Configuración del Audio Worker Service"""
 
     # App
-    APP_NAME: str = "video-worker-service"
+    APP_NAME: str = "audio-worker-service"
     APP_VERSION: str = "1.0.0"
     APP_ENV: str = Field(default="development")
     DEBUG: bool = False

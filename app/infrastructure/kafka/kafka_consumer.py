@@ -33,7 +33,7 @@ async def start_kafka_consumer():
         bootstrap_servers=settings.KAFKA_BROKER,
         enable_auto_commit=True,
         auto_offset_reset=settings.KAFKA_AUTO_OFFSET_RESET,
-        group_id=settings.KAFKA_GROUP_ID if settings.KAFKA_GROUP_ID else None,
+        group_id=None,
     )
 
     await consumer.start()
@@ -46,13 +46,14 @@ async def start_kafka_consumer():
 
                 # JSON → KafkaMessage
                 data = json.loads(decoded)
-                kafka_msg = KafkaMessage(**data)  # <--- ahora usas tu dataclass
-
-                # Si necesitas un DTO intermedio:
+                kafka_msg = KafkaMessage(**data)
+                
                 dto = PracticeDataDTO(
                     uid=kafka_msg.uid,
                     practice_id=kafka_msg.practice_id,
-                    message=kafka_msg.message,
+                    video_route=kafka_msg.video_route,
+                    scale=kafka_msg.scale,
+                    reps=kafka_msg.reps,
                 )
 
                 # Ejecutar caso de uso

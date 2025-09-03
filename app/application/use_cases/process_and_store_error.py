@@ -6,6 +6,7 @@ from app.domain.services.mongo_practice_service import MongoPracticeService
 from app.infrastructure.kafka.kafka_message import KafkaMessage
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
 from app.core.exceptions import DatabaseConnectionException, ValidationException
+from app.core.config import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -44,12 +45,15 @@ class ProcessAndStoreErrorUseCase:
             kafka_message = KafkaMessage(
                 uid=data.uid,
                 practice_id=data.practice_id,
-                message="audio_done"
+                message="audio_done",
+                scale=data.scale,
+                video_route=data.video_route,
+                reps=data.reps,
             )
             
             logger.debug("Prepared Kafka message: %s", kafka_message)
 
-            await self.kafka_producer.publish_message(topic="audio_done_topic", message=kafka_message)
+            await self.kafka_producer.publish_message(topic=settings.KAFKA_OUTPUT_TOPIC, message=kafka_message)
 
             # 4️ Mapear a DTOs
             return [

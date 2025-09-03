@@ -23,7 +23,7 @@ class DatabaseConnection:
         self.async_session_factory: async_sessionmaker[AsyncSession] | None = None
 
     def create_async_engine(self):
-        """Inicializa el motor y la fábrica de sesiones si aún no existen."""
+        """Initializes the async database engine and session factory if not already done."""
         if not self.async_engine:
             try:
                 self.async_engine = create_async_engine(
@@ -43,13 +43,13 @@ class DatabaseConnection:
                 raise RuntimeError(f"Failed to create database connection: {e}")
 
     def get_async_session(self) -> AsyncSession:
-        """Obtiene una nueva sesión asíncrona."""
+        """Gets a new async session."""
         if not self.async_session_factory:
             self.create_async_engine()
         return self.async_session_factory()
 
     async def close_connections(self):
-        """Cierra las conexiones del motor de base de datos."""
+        """Closes the database engine connections."""
         if self.async_engine:
             await self.async_engine.dispose()
             logger.info("Database connections closed")
