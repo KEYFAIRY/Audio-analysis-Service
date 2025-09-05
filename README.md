@@ -88,7 +88,7 @@ docker ps
 
 ### Test the service
 
-Developing kafdrop to manually test
+Developing kafdrop to manually test kafka functionalities, but the endpoints are accesible [Here](http://localhost:8090).
 
 ### Stop the service
 
