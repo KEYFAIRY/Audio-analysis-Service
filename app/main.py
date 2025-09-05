@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.infrastructure.kafka.kafka_consumer import start_kafka_consumer
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
 from app.presentation.api.v1.musical_error import router as musical_error
-from app.presentation.middleware.exception_hanler import (
+from app.presentation.middleware.exception_handler import (
     database_connection_exception_handler,
     validation_exception_handler,
     request_validation_exception_handler,

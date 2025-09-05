@@ -3,27 +3,27 @@ from app.domain.services.musical_error_service import MusicalErrorService
 from app.infrastructure.repositories.mysql_repo import MySQLMusicalErrorRepository
 from app.application.use_cases.list_errors_by_practice import ListErrorsByPracticeUseCase
 
-# Repositorios
+# Repositories
 @lru_cache()
 def get_musical_error_repository() -> MySQLMusicalErrorRepository:
-    """Obtener instancia del repositorio de errores musicales"""
+    """Get instance of the musical error repository"""
     return MySQLMusicalErrorRepository()
 
-# Servicios
+# Services
 @lru_cache()
 def get_musical_error_service() -> MusicalErrorService:
-    """Obtener instancia del servicio de dominio de errores musicales"""
+    """Get instance of the musical error domain service"""
     repo = get_musical_error_repository()
     return MusicalErrorService(repo)
 
-# Casos de uso
+# Use Cases
 @lru_cache()
 def get_list_errors_by_practice_use_case() -> ListErrorsByPracticeUseCase:
-    """Obtener instancia del caso de uso para listar errores musicales de una práctica"""
+    """Get instance of the use case to list musical errors by practice"""
     service = get_musical_error_service()
     return ListErrorsByPracticeUseCase(service)
 
-# Dependencia para FastAPI
+# Dependency for FastAPI
 def list_errors_by_practice_use_case_dependency():
-    """Dependencia para inyectar caso de uso de listar errores musicales"""
+    """Dependency to inject use case for listing musical errors"""
     return get_list_errors_by_practice_use_case()

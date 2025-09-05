@@ -31,8 +31,6 @@ async def list_errors_by_practice(
     # Mapear DTO -> Response Schema
     errors_response = [
         MusicalErrorResponse(
-            id=e.id,
-            practice_id=e.practice_id,
             min_sec=e.min_sec,
             note_played=e.note_played,
             note_correct=e.note_correct
