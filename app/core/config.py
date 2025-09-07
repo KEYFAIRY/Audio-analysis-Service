@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     APP_ENV: str = Field(default="development")
     DEBUG: bool = False
 
-    # Servidor FastAPI
+    # FastAPI
     HOST: str = "0.0.0.0"
     RELOAD: bool = False
     AUDIO_ANALYSIS_SERVICE_PORT: int
