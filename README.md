@@ -29,7 +29,6 @@ Audio analysis service for detecting music mistakes
 │   ├── 📁 application/                 # Application layer (use case orchestration)
 │   │   ├── 📁 use_cases/               # Use cases (e.g., process_and_store_error.py)
 │   │   ├── 📁 dto/                     # Data Transfer Objects
-│   │   └── 📁 interfaces/              # Application-level interfaces
 │   │
 │   ├── 📁 infrastructure/              # Technical implementations
 │   │   ├── 📁 kafka/                   # Kafka consumer and producer
