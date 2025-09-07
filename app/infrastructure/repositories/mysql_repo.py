@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from app.domain.repositories.i_mysql_repo import IMySQLRepo
 from app.domain.entities.musical_error import MusicalError
 from app.infrastructure.database.models.MusicalErrorModel import MusicalErrorModel
-from app.infrastructure.database.mysql_connection import db_connection
+from app.infrastructure.database.mysql_connection import mysql_connection
 from app.core.exceptions import DatabaseConnectionException
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ class MySQLMusicalErrorRepository(IMySQLRepo):
     """Concrete implementation of IMySQLRepo using MySQL."""
 
     async def list_by_practice_id(self, id_practice: int) -> List[MusicalError]:
-        async with db_connection.get_async_session() as session:
+        async with mysql_connection.get_async_session() as session:
             try:
                 result = await session.execute(
                     select(MusicalErrorModel).where(MusicalErrorModel.id_practice == id_practice)
@@ -30,7 +30,7 @@ class MySQLMusicalErrorRepository(IMySQLRepo):
                 raise DatabaseConnectionException(f"Error fetching musical errors: {str(e)}")
 
     async def create(self, musical_error: MusicalError) -> MusicalError:
-        async with db_connection.get_async_session() as session:
+        async with mysql_connection.get_async_session() as session:
             try:
                 model = MusicalErrorModel(
                     min_sec=musical_error.min_sec,
