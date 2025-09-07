@@ -4,6 +4,7 @@ from app.domain.entities.musical_error import MusicalError
 
 class IMySQLRepo(ABC):
     
+    # TODO: This method is for reports service
     @abstractmethod
     async def list_by_practice_id(self, id_practice: int) -> List[MusicalError]:
         pass
