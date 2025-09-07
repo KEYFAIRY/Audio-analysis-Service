@@ -5,10 +5,9 @@ import logging
 import asyncio
 
 from app.core.config import settings
+from app.infrastructure.database import mongo_connection, mysql_connection
 from app.infrastructure.kafka.kafka_consumer import start_kafka_consumer
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
-from app.infrastructure.mongo_connection import mongo_connection
-from app.infrastructure.mysql_connection import mysql_connection
 from app.presentation.api.v1.musical_error import router as musical_error
 from app.presentation.middleware.exception_handler import (
     database_connection_exception_handler,
@@ -37,11 +36,11 @@ async def lifespan(app: FastAPI):
     # ---- Conexiones de base de datos ----
     try:
         # MySQL
-        mysql_connection.create_async_engine()
+        mysql_connection.mysql_connection.init_engine()
         logger.info("MySQL connection initialized")
 
         # Mongo
-        mongo_connection.connect()
+        mongo_connection.mongo_connection.connect()
         logger.info("MongoDB connection initialized")
 
     except Exception as e:
@@ -53,7 +52,7 @@ async def lifespan(app: FastAPI):
     await producer.start()
 
     loop = asyncio.get_event_loop()
-    consumer_task = loop.create_task(start_kafka_consumer())
+    consumer_task = loop.create_task(start_kafka_consumer(producer))
 
     yield
 
@@ -68,8 +67,8 @@ async def lifespan(app: FastAPI):
     logger.info("Kafka producer stopped")
 
     # Close DBs
-    await mysql_connection.close_connections()
-    await mongo_connection.close()
+    await mysql_connection.mysql_connection.close_connections()
+    await mongo_connection.mongo_connection.close()
 
     logger.info("Database connections closed")
 

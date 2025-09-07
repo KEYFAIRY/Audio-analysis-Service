@@ -8,6 +8,7 @@ from app.application.use_cases.process_and_store_error import ProcessAndStoreErr
 from app.domain.services.musical_error_service import MusicalErrorService
 from app.domain.services.mongo_practice_service import MongoPracticeService
 from app.infrastructure.kafka.kafka_message import KafkaMessage
+from app.infrastructure.kafka.kafka_producer import KafkaProducer
 from app.infrastructure.repositories.mysql_repo import MySQLMusicalErrorRepository
 from app.infrastructure.repositories.mongo_repo import MongoRepo
 from app.application.dto.practice_data_dto import PracticeDataDTO
@@ -15,7 +16,7 @@ from app.application.dto.practice_data_dto import PracticeDataDTO
 logger = logging.getLogger(__name__)
 
 
-async def start_kafka_consumer():
+async def start_kafka_consumer(kafka_producer: KafkaProducer):
     # Inicializar dependencias
     mysql_repo = MySQLMusicalErrorRepository()
     mongo_repo = MongoRepo()
@@ -26,6 +27,7 @@ async def start_kafka_consumer():
     use_case = ProcessAndStoreErrorUseCase(
         music_service=music_service,
         mongo_service=mongo_service,
+        kafka_producer=kafka_producer,
     )
 
     consumer = AIOKafkaConsumer(
