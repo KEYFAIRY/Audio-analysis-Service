@@ -62,7 +62,7 @@ class MusicalErrorService:
             # 3. analizar el audio y extraer errores
             # 4. guardar cada uno de los errores en la base de datos
             # Ejemplo de guardado:
-            # error = MusicalError(practice_id=practice_id, description="Error de ritmo")
+            # error = MusicalError(min_sec="00:01", note_played="C4", note_correct="D4", id_practice=practice_id)
             # await self.music_repo.create(error)
             
             # stored_errors solamente se usó para colocar algo en los logs
