@@ -11,11 +11,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     APP_ENV: str = Field(default="development")
     DEBUG: bool = False
-
-    # FastAPI
-    HOST: str = "0.0.0.0"
     RELOAD: bool = False
-    AUDIO_ANALYSIS_SERVICE_PORT: int
 
     # Kafka
     KAFKA_BROKER: str
@@ -66,9 +62,6 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-
-    # CORS
-    CORS_ORIGINS: list[str] = ["*"]
 
     class Config:
         case_sensitive = True
