@@ -1,5 +1,3 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 import asyncio
@@ -8,18 +6,10 @@ from app.core.config import settings
 from app.infrastructure.database import mongo_connection, mysql_connection
 from app.infrastructure.kafka.kafka_consumer import start_kafka_consumer
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
-from app.presentation.api.v1.musical_error import router as musical_error
-from app.presentation.middleware.exception_handler import (
-    database_connection_exception_handler,
-    validation_exception_handler,
-    request_validation_exception_handler,
-    general_exception_handler,
-)
 from app.core.exceptions import (
     DatabaseConnectionException,
     ValidationException,
 )
-from fastapi.exceptions import RequestValidationError
 
 from app.core.logging_config import configure_logging
 
@@ -29,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan():
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.APP_ENV}")
 
@@ -73,53 +63,13 @@ async def lifespan(app: FastAPI):
     logger.info("Database connections closed")
 
 
-def create_application() -> FastAPI:
-    app = FastAPI(
-        title=settings.APP_NAME,
-        version=settings.APP_VERSION,
-        lifespan=lifespan,
-    )
-
-    # CORS
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    # Exception Handlers
-    app.add_exception_handler(DatabaseConnectionException, database_connection_exception_handler)
-    app.add_exception_handler(ValidationException, validation_exception_handler)
-    app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
-    app.add_exception_handler(Exception, general_exception_handler)
-
-    @app.get("/health")
-    async def health_check():
-        return {
-            "status": "healthy",
-            "service": settings.APP_NAME,
-            "version": settings.APP_VERSION,
-            "environment": settings.APP_ENV,
-        }
-
-    app.include_router(musical_error)
-
-    return app
-
-
-app = create_application()
-
+async def main():
+    async with lifespan():
+        while True:
+            await asyncio.sleep(3600)
 
 if __name__ == "__main__":
-    import uvicorn
-
-    logger.info(f"Starting server on {settings.HOST}:{settings.PORT}")
-    uvicorn.run(
-        "app.main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=settings.RELOAD,
-        log_level=settings.LOG_LEVEL.lower(),
-    )
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Service stopped manually (Ctrl+C)")

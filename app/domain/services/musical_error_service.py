@@ -13,46 +13,33 @@ class MusicalErrorService:
     def __init__(self, music_repo: IMySQLRepo):
         self.music_repo = music_repo
 
-    async def list_errors_by_practice(self, id_practice: int) -> List[MusicalError]:
-        try:
-            errors = await self.music_repo.list_by_practice_id(id_practice)
-            logger.info(
-                "Fetched %d errors for practice_id=%s",
-                len(errors),
-                id_practice,
-                extra={"practice_id": id_practice, "count": len(errors)},
-            )
-            return errors
-        except Exception as e:
-            logger.error(
-                "Error fetching errors for practice_id=%s",
-                id_practice,
-                exc_info=True,
-                extra={"practice_id": id_practice},
-            )
-            raise
-
     async def process_and_store_error(self, data: PracticeData) -> List[MusicalError]:
         uid = data.uid
         practice_id = data.practice_id
         video_route = data.video_route
         scale = data.scale
+        scale_type = data.scale_type
         reps = data.reps
+        bpm = data.bpm
 
         try:
             logger.info(
-                "Processing errors for uid=%s, practice_id=%s, video=%s, scale=%s, reps=%s",
+                "Processing errors for uid=%s, practice_id=%s, video=%s, scale=%s, scale_type=%s, reps=%s, bpm=%s",
                 uid,
                 practice_id,
                 video_route,
                 scale,
+                scale_type,
                 reps,
+                bpm,
                 extra={
                     "uid": uid,
                     "practice_id": practice_id,
                     "video_route": video_route,
                     "scale": scale,
+                    "scale_type": scale_type,
                     "reps": reps,
+                    "bpm": bpm,
                 },
             )
 
@@ -61,9 +48,6 @@ class MusicalErrorService:
             # 2. convertir el video en audio
             # 3. analizar el audio y extraer errores
             # 4. guardar cada uno de los errores en la base de datos
-            # Ejemplo de guardado:
-            # error = MusicalError(min_sec="00:01", note_played="C4", note_correct="D4", id_practice=practice_id)
-            # await self.music_repo.create(error)
             
             # stored_errors solamente se usó para colocar algo en los logs
             stored_errors: List[MusicalError] = []

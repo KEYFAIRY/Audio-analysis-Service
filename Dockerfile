@@ -20,8 +20,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar todo el código fuente
 COPY . .
 
-# Exponer el puerto interno
-EXPOSE 8090
-
 # Comando por defecto al iniciar el contenedor
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8090", "--reload"]
+CMD ["python", "-m", "app.main"]

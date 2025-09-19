@@ -1,6 +1,7 @@
 from typing import List
 from app.application.dto.musical_error_dto import MusicalErrorDTO
 from app.application.dto.practice_data_dto import PracticeDataDTO
+from app.domain.entities.practice_data import PracticeData
 from app.domain.services.musical_error_service import MusicalErrorService
 from app.domain.services.mongo_practice_service import MongoPracticeService
 from app.infrastructure.kafka.kafka_message import KafkaMessage
@@ -34,21 +35,33 @@ class ProcessAndStoreErrorUseCase:
         
         try:
             # 1️ Procesar y almacenar errores en MySQL
-            errors = await self.music_service.process_and_store_error(data)
+            practice_data = PracticeData(
+                uid=data.uid,
+                practice_id=data.practice_id,
+                video_route=data.video_route,
+                scale=data.scale,
+                scale_type=data.scale_type,
+                reps=data.reps,
+                bpm=data.bpm,
+            )
+            
+            errors = await self.music_service.process_and_store_error(practice_data)
             logger.info("Stored %d errors for practice_id=%s", len(errors), data.practice_id)
 
             # 2️ Actualizar Mongo usando el servicio
             await self.mongo_service.mark_audio_done(uid=str(data.uid), id_practice=data.practice_id)
             logger.info("Marked audio as done in Mongo for uid=%s, practice_id=%s", data.uid, data.practice_id)
 
-            # 3️ Publicar mensaje en Kafka (si el producer está habilitado)
+            # 3️ Publicar mensaje en Kafka
             kafka_message = KafkaMessage(
                 uid=data.uid,
                 practice_id=data.practice_id,
                 message="audio_done",
                 scale=data.scale,
+                scale_type=data.scale_type,
                 video_route=data.video_route,
                 reps=data.reps,
+                bpm=data.bpm,
             )
             
             logger.debug("Prepared Kafka message: %s", kafka_message)

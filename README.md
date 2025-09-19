@@ -36,13 +36,6 @@ Audio analysis service for detecting music mistakes
 │   │   │   └── 📁 models/              # Database models
 │   │   └── 📁 repositories/            # Concrete repository implementations
 │   │
-│   ├── 📁 presentation/               # Presentation layer (API and external interfaces)
-│   │   ├── 📁 api/                    # REST API endpoints
-│   │   │   ├── 📁 v1/                 # API v1 endpoints
-│   │   │   └── dependencies.py        # Shared dependencies (DI)
-│   │   ├── 📁 schemas/                # Pydantic schemas (e.g., musical_error_schema.py)
-│   │   └── 📁 middleware/             # Custom middleware (CORS, logging, error handling)
-│   │
 │   └── 📁 shared/                      # Shared utilities
 │       ├── constants.py                # Global constants
 │       ├── enums.py                    # Enumerations
