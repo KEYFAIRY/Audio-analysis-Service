@@ -3,9 +3,7 @@ import logging
 from aiokafka import AIOKafkaProducer
 from app.infrastructure.kafka.kafka_message import KafkaMessage
 
-
 logger = logging.getLogger(__name__)
-
 
 class KafkaProducer:
     def __init__(self, bootstrap_servers: str):
@@ -27,7 +25,7 @@ class KafkaProducer:
         Publica un KafkaMessage en un topic
         """
         try:
-            payload = message.__dict__  # conversion dataclass → dict
+            payload = message.__dict__  # dataclass → dict
             await self._producer.send_and_wait(topic, payload)
             logger.info("Message published to %s: %s", topic, payload)
         except Exception:

@@ -1,10 +1,8 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field
-from typing import List
-
 
 class Settings(BaseSettings):
-    """Configuración del Audio Worker Service"""
+    """Configuration: Audio Worker Service"""
 
     # App
     APP_NAME: str = "audio-worker-service"

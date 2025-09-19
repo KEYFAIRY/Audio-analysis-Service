@@ -1,16 +1,15 @@
-from typing import List
 import logging
+from typing import List
 from app.domain.entities.musical_error import MusicalError
 from app.domain.entities.practice_data import PracticeData
-from app.domain.repositories.i_mysql_repo import IMySQLRepo
+from app.domain.repositories.i_musical_error_repo import IMusicalErrorRepo
 
 logger = logging.getLogger(__name__)
-
 
 class MusicalErrorService:
     """Domain service for management of musical errors"""
 
-    def __init__(self, music_repo: IMySQLRepo):
+    def __init__(self, music_repo: IMusicalErrorRepo):
         self.music_repo = music_repo
 
     async def process_and_store_error(self, data: PracticeData) -> List[MusicalError]:

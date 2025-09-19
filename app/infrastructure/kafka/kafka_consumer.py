@@ -1,16 +1,14 @@
-import asyncio
 import json
 import logging
 from aiokafka import AIOKafkaConsumer
-
 from app.core.config import settings
 from app.application.use_cases.process_and_store_error import ProcessAndStoreErrorUseCase
 from app.domain.services.musical_error_service import MusicalErrorService
 from app.domain.services.mongo_practice_service import MongoPracticeService
 from app.infrastructure.kafka.kafka_message import KafkaMessage
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
-from app.infrastructure.repositories.mysql_repo import MySQLMusicalErrorRepository
-from app.infrastructure.repositories.mongo_repo import MongoRepo
+from app.infrastructure.repositories.mysql_musical_error_repo import MySQLMusicalErrorRepository
+from app.infrastructure.repositories.mongo_metadata_repo import MongoMetadataRepo
 from app.application.dto.practice_data_dto import PracticeDataDTO
 
 logger = logging.getLogger(__name__)
@@ -19,7 +17,7 @@ logger = logging.getLogger(__name__)
 async def start_kafka_consumer(kafka_producer: KafkaProducer):
     # Initialize dependencies
     mysql_repo = MySQLMusicalErrorRepository()
-    mongo_repo = MongoRepo()
+    mongo_repo = MongoMetadataRepo()
 
     music_service = MusicalErrorService(mysql_repo)
     mongo_service = MongoPracticeService(mongo_repo)

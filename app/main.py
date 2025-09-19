@@ -1,17 +1,12 @@
-from contextlib import asynccontextmanager
 import logging
 import asyncio
-
 from app.core.config import settings
+from app.core.logging_config import configure_logging
 from app.infrastructure.database import mongo_connection, mysql_connection
 from app.infrastructure.kafka.kafka_consumer import start_kafka_consumer
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
-from app.core.exceptions import (
-    DatabaseConnectionException,
-    ValidationException,
-)
+from contextlib import asynccontextmanager
 
-from app.core.logging_config import configure_logging
 
 # Configure logging
 configure_logging()
@@ -23,7 +18,7 @@ async def lifespan():
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.APP_ENV}")
 
-    # ---- Conexiones de base de datos ----
+    # ---- DB COnnections ----
     try:
         # MySQL
         mysql_connection.mysql_connection.init_engine()
@@ -46,7 +41,7 @@ async def lifespan():
 
     yield
 
-    # ---- Shutdown ordenado ----
+    # ---- Shutdown ----
     consumer_task.cancel()
     try:
         await consumer_task
@@ -67,6 +62,7 @@ async def main():
     async with lifespan():
         while True:
             await asyncio.sleep(3600)
+
 
 if __name__ == "__main__":
     try:

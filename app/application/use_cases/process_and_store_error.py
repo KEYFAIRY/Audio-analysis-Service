@@ -1,3 +1,4 @@
+import logging
 from typing import List
 from app.application.dto.musical_error_dto import MusicalErrorDTO
 from app.application.dto.practice_data_dto import PracticeDataDTO
@@ -8,7 +9,6 @@ from app.infrastructure.kafka.kafka_message import KafkaMessage
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
 from app.core.exceptions import DatabaseConnectionException, ValidationException
 from app.core.config import settings
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class ProcessAndStoreErrorUseCase:
             raise ValidationException("uid, practice_id, and video_route are required")
         
         try:
-            # 1️ Procesar y almacenar errores en MySQL
+            # 1️ Process and store errors in MySQL
             practice_data = PracticeData(
                 uid=data.uid,
                 practice_id=data.practice_id,
@@ -48,11 +48,11 @@ class ProcessAndStoreErrorUseCase:
             errors = await self.music_service.process_and_store_error(practice_data)
             logger.info("Stored %d errors for practice_id=%s", len(errors), data.practice_id)
 
-            # 2️ Actualizar Mongo usando el servicio
+            # 2️ Updates metadata in MongoDB
             await self.mongo_service.mark_audio_done(uid=str(data.uid), id_practice=data.practice_id)
             logger.info("Marked audio as done in Mongo for uid=%s, practice_id=%s", data.uid, data.practice_id)
 
-            # 3️ Publicar mensaje en Kafka
+            # 3️ Publish message to Kafka
             kafka_message = KafkaMessage(
                 uid=data.uid,
                 practice_id=data.practice_id,
@@ -68,7 +68,7 @@ class ProcessAndStoreErrorUseCase:
 
             await self.kafka_producer.publish_message(topic=settings.KAFKA_OUTPUT_TOPIC, message=kafka_message)
 
-            # 4️ Mapear a DTOs
+            # 4️ Map to DTOs
             return [
                 MusicalErrorDTO(
                     min_sec=e.min_sec,
