@@ -26,19 +26,18 @@ class ProcessAndStoreErrorUseCase:
         self.kafka_producer = kafka_producer
 
     async def execute(self, data: PracticeDataDTO) -> List[MusicalErrorDTO]:
-        if not data.uid or not data.practice_id or not data.video_route:
+        if not data.uid or not data.practice_id:
             logger.warning(
-                "Validation failed: uid=%s, practice_id=%s, video_route=%s",
-                data.uid, data.practice_id, data.video_route
+                "Validation failed: uid=%s, practice_id=%s",
+                data.uid, data.practice_id
             )
-            raise ValidationException("uid, practice_id, and video_route are required")
+            raise ValidationException("uid and practice_id are required")
         
         try:
             # 1️ Process and store errors in MySQL
             practice_data = PracticeData(
                 uid=data.uid,
                 practice_id=data.practice_id,
-                video_route=data.video_route,
                 scale=data.scale,
                 scale_type=data.scale_type,
                 reps=data.reps,
@@ -59,7 +58,6 @@ class ProcessAndStoreErrorUseCase:
                 message="audio_done",
                 scale=data.scale,
                 scale_type=data.scale_type,
-                video_route=data.video_route,
                 reps=data.reps,
                 bpm=data.bpm,
             )

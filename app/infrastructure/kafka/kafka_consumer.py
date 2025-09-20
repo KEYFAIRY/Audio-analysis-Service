@@ -7,6 +7,7 @@ from app.domain.services.musical_error_service import MusicalErrorService
 from app.domain.services.mongo_practice_service import MongoPracticeService
 from app.infrastructure.kafka.kafka_message import KafkaMessage
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
+from app.infrastructure.repositories.local_video_repo import LocalVideoRepository
 from app.infrastructure.repositories.mysql_musical_error_repo import MySQLMusicalErrorRepository
 from app.infrastructure.repositories.mongo_metadata_repo import MongoMetadataRepo
 from app.application.dto.practice_data_dto import PracticeDataDTO
@@ -18,8 +19,9 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
     # Initialize dependencies
     mysql_repo = MySQLMusicalErrorRepository()
     mongo_repo = MongoMetadataRepo()
+    video_repo = LocalVideoRepository()
 
-    music_service = MusicalErrorService(mysql_repo)
+    music_service = MusicalErrorService(mysql_repo, video_repo)
     mongo_service = MongoPracticeService(mongo_repo)
 
     use_case = ProcessAndStoreErrorUseCase(
@@ -31,7 +33,7 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
     consumer = AIOKafkaConsumer(
         settings.KAFKA_INPUT_TOPIC,
         bootstrap_servers=settings.KAFKA_BROKER,
-        enable_auto_commit=True,
+        enable_auto_commit=False,
         auto_offset_reset=settings.KAFKA_AUTO_OFFSET_RESET,
         group_id=settings.KAFKA_GROUP_ID,
     )
@@ -51,7 +53,6 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                 dto = PracticeDataDTO(
                     uid=kafka_msg.uid,
                     practice_id=kafka_msg.practice_id,
-                    video_route=kafka_msg.video_route,
                     scale=kafka_msg.scale,
                     scale_type=kafka_msg.scale_type,
                     reps=kafka_msg.reps,
@@ -61,7 +62,7 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                 # Execute use case
                 errors = await use_case.execute(dto)
                 logger.info(f"Processed KafkaMessage with {len(errors)} errors")
-
+                await consumer.commit()
             except Exception as e:
                 logger.error(f"Error processing message: {e}", exc_info=True)
     finally:
