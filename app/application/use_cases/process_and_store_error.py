@@ -4,7 +4,7 @@ from app.application.dto.musical_error_dto import MusicalErrorDTO
 from app.application.dto.practice_data_dto import PracticeDataDTO
 from app.domain.entities.practice_data import PracticeData
 from app.domain.services.musical_error_service import MusicalErrorService
-from app.domain.services.mongo_practice_service import MongoPracticeService
+from app.domain.services.metadata_practice_service import MetadataPracticeService
 from app.infrastructure.kafka.kafka_message import KafkaMessage
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
 from app.core.exceptions import DatabaseConnectionException, ValidationException
@@ -18,7 +18,7 @@ class ProcessAndStoreErrorUseCase:
     def __init__(
         self, 
         music_service: MusicalErrorService,
-        mongo_service: MongoPracticeService,
+        mongo_service: MetadataPracticeService,
         kafka_producer: KafkaProducer
     ):
         self.music_service = music_service
