@@ -4,8 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: audio-analysis-service
-    ports:
-      - "${AUDIO_ANALYSIS_SERVICE_PORT:-8090}:8090"
     environment:
       APP_ENV: ${APP_ENV:-development}
 
