@@ -1,6 +1,4 @@
 import logging
-from typing import List
-from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from app.domain.repositories.i_musical_error_repo import IMusicalErrorRepo
 from app.domain.entities.musical_error import MusicalError
