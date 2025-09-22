@@ -55,9 +55,12 @@ class ProcessAndStoreErrorUseCase:
             kafka_message = KafkaMessage(
                 uid=data.uid,
                 practice_id=data.practice_id,
+                date=data.date,
+                time=data.time,
                 message="audio_done",
                 scale=data.scale,
                 scale_type=data.scale_type,
+                duration=data.duration,
                 reps=data.reps,
                 bpm=data.bpm,
             )
