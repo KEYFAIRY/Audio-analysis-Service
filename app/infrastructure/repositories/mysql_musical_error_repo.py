@@ -16,8 +16,7 @@ class MySQLMusicalErrorRepository(IMusicalErrorRepo):
             try:
                 model = MusicalErrorModel(
                     min_sec=musical_error.min_sec,
-                    note_played=musical_error.note_played,
-                    note_correct=musical_error.note_correct,
+                    missed_note=musical_error.missed_note,
                     id_practice=musical_error.id_practice
                 )
                 session.add(model)
@@ -44,10 +43,9 @@ class MySQLMusicalErrorRepository(IMusicalErrorRepo):
                 raise DatabaseConnectionException(f"Error creating musical error: {str(e)}")
 
     def _model_to_entity(self, model: MusicalErrorModel) -> MusicalError:
-        return MusicalError(
+        return  MusicalError(
             id=model.id,
             min_sec=model.min_sec,
-            note_played=model.note_played,
-            note_correct=model.note_correct,
+            missed_note=model.missed_note,
             id_practice=model.id_practice
         )

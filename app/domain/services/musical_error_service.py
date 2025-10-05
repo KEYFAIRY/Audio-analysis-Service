@@ -19,25 +19,31 @@ class MusicalErrorService:
         practice_id = data.practice_id
         scale = data.scale
         scale_type = data.scale_type
-        reps = data.reps
+        duration = data.duration
         bpm = data.bpm
+        figure = data.figure
+        octaves = data.octaves
 
         try:
             logger.info(
-                "Processing errors for uid=%s, practice_id=%s, scale=%s, scale_type=%s, reps=%s, bpm=%s",
+                "Processing errors for uid=%s, practice_id=%s, scale=%s, scale_type=%s, duration=%s, bpm=%s, figure=%s, octaves=%s",
                 uid,
                 practice_id,
                 scale,
                 scale_type,
-                reps,
+                duration,
                 bpm,
+                figure,
+                octaves,
                 extra={
                     "uid": uid,
                     "practice_id": practice_id,
                     "scale": scale,
                     "scale_type": scale_type,
-                    "reps": reps,
+                    "duration": duration,
                     "bpm": bpm,
+                    "figure": figure,
+                    "octaves": octaves,
                 },
             )
 

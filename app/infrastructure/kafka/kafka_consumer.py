@@ -60,8 +60,9 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                     num_postural_errors=0,  # Placeholder
                     num_musical_errors=0,   # Placeholder
                     duration=kafka_msg.duration,
-                    reps=kafka_msg.reps,
                     bpm=kafka_msg.bpm,
+                    figure=kafka_msg.figure,
+                    octaves=kafka_msg.octaves,
                 )
 
                 # Execute use case

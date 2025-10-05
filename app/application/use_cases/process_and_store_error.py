@@ -40,8 +40,10 @@ class ProcessAndStoreErrorUseCase:
                 practice_id=data.practice_id,
                 scale=data.scale,
                 scale_type=data.scale_type,
-                reps=data.reps,
+                duration=data.duration,
                 bpm=data.bpm,
+                figure=data.figure,
+                octaves=data.octaves,
             )
             
             errors = await self.music_service.process_and_store_error(practice_data)
@@ -61,8 +63,9 @@ class ProcessAndStoreErrorUseCase:
                 scale=data.scale,
                 scale_type=data.scale_type,
                 duration=data.duration,
-                reps=data.reps,
                 bpm=data.bpm,
+                figure=data.figure,
+                octaves=data.octaves,
             )
             
             logger.debug("Prepared Kafka message: %s", kafka_message)
