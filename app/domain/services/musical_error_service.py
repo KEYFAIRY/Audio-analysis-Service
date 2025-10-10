@@ -52,7 +52,16 @@ class MusicalErrorService:
             path = await self.video_repo.read(uid, practice_id)
             # 2. convertir el video en audio
             # 3. analizar el audio y extraer errores
+            
             # 4. guardar cada uno de los errores en la base de datos
+            """ Ejemplo guardar error
+            self.music_repo.create(MusicalError(
+                minsec="00:01", 
+                note_played="C4", 
+                note_correct="C#4", 
+                id_practice=practice_id
+                )
+            ) """
             
             # stored_errors solamente se usó para colocar algo en los logs
             stored_errors: List[MusicalError] = []
