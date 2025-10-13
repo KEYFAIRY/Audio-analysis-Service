@@ -8,3 +8,8 @@ motor
 pydantic-settings
 cryptography
 music21
+moviepy
+basic_pitch
+numpy
+librosa
+soundfile

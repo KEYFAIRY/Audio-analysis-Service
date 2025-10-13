@@ -66,7 +66,7 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                 )
 
                 # Execute use case
-                errors = await use_case.execute(dto)
+                errors = await use_case.execute(dto) # COMMENTAR AHORITA
                 logger.info(f"Processed KafkaMessage with {len(errors)} errors")
                 await consumer.commit()
             except Exception as e:

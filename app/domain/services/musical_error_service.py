@@ -4,6 +4,9 @@ from app.domain.entities.musical_error import MusicalError
 from app.domain.entities.practice_data import PracticeData
 from app.domain.repositories.i_musical_error_repo import IMusicalErrorRepo
 from app.domain.repositories.i_videos_repo import IVideoRepo
+from app.infrastructure.audio.utils.time_utils import format_seconds_to_mmss
+from app.infrastructure.audio.utils.note_utils import get_correct_notes, solfege_to_note, note_to_solfege
+from app.infrastructure.audio.analyzer import extract_notes_audio
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +53,8 @@ class MusicalErrorService:
             # TODO: Implementar análisis de audio y extracción de errores
             # 1. obtener el video en video_route
             path = await self.video_repo.read(uid, practice_id)
+            # solfege_of_scale = scale.split()[0]
+            # expected_notes = get_correct_notes(solfege_to_note(solfege_of_scale), scale_type, octaves)
             # 2. convertir el video en audio
             # 3. analizar el audio y extraer errores
             # 4. guardar cada uno de los errores en la base de datos
