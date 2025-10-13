@@ -115,7 +115,7 @@ def basic_pitch_model_executor(audio_path: str, edges: list, n_bins: int):
                 extracted_notes.append(sorted_notes[0])
             else:
                 strongest_note = sorted_notes[0]
-                strongest_note['name'] = "Nan"
+                strongest_note['name'] = "Faltó"
                 extracted_notes.append(strongest_note)
             
 
