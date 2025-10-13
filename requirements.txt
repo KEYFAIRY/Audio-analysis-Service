@@ -7,3 +7,4 @@ aiokafka
 motor
 pydantic-settings
 cryptography
+music21
