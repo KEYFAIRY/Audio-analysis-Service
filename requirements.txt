@@ -13,3 +13,4 @@ basic_pitch
 numpy
 librosa
 soundfile
+tensorflow
