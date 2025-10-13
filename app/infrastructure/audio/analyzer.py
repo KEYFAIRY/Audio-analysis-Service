@@ -2,8 +2,6 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 import librosa
 import numpy as np
-# from basic_pitch.inference import predict
-# from basic_pitch import ICASSP_2022_MODEL_PATH
 from moviepy import VideoFileClip
 import math
 import time

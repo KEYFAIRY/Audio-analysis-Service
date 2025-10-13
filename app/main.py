@@ -1,11 +1,15 @@
 import logging
 import asyncio
+import numpy as np
+import soundfile as sf
 from app.core.config import settings
 from app.core.logging_config import configure_logging
+from app.infrastructure.audio.model_manager import ModelManager
 from app.infrastructure.database import mongo_connection, mysql_connection
 from app.infrastructure.kafka.kafka_consumer import start_kafka_consumer
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
 from contextlib import asynccontextmanager
+
 
 
 # Configure logging
@@ -30,6 +34,23 @@ async def lifespan():
 
     except Exception as e:
         logger.exception("Error initializing database connections")
+        raise
+
+    # ---- Load Audio Models ----
+    try:
+        logger.info("Pre-loading audio analysis models...")
+        predict, model_path = ModelManager.get_basic_pitch()
+        # Load model weights by running predict on dummy audio
+
+        # Write a short silent WAV file
+        dummy_path = "dummy.wav"
+        sf.write(dummy_path, np.zeros(48000), 48000)  # 1 second of silence at 48kHz
+
+        # Actually load the model weights
+        predict(dummy_path, model_or_model_path=model_path)
+        logger.info("Audio models loaded successfully")
+    except Exception as e:
+        logger.exception("Error loading audio models")
         raise
 
     # ---- Kafka ----
