@@ -8,6 +8,7 @@ from app.infrastructure.audio.model_manager import ModelManager
 from app.infrastructure.audio.utils.time_utils import format_seconds_to_mmss
 from app.infrastructure.audio.utils.note_utils import get_correct_notes, solfege_to_note, note_to_solfege
 from app.infrastructure.audio.analyzer import extract_notes_audio
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -63,12 +64,12 @@ class MusicalErrorService:
             extracted_notes = extract_notes_audio(path, bpm, figure, len(expected_notes))
             # 4. Comparar las notas esperadas con las notas extraidas y guardar errores musicales.
             stored_errors: List[MusicalError] = []
-            print("NOTAS")
+            print(f"NOTAS: {len(expected_notes)}")
             
             for i in range(len(expected_notes)):
-                print(f"Esperada: {expected_notes[i]} | Detectada: {extracted_notes[i]['name']}")
+                # print(f"Esperada: {expected_notes[i]} | Detectada: {extracted_notes[i]['name']}")
                 if expected_notes[i] != extracted_notes[i]['name']:
-                    # print(f"Esperada: {expected_notes[i]}, Detectada: {extracted_notes[i]['name']} | start: {extracted_notes[i]['start']:.4f} |✖|")
+                    print(f"Esperada: {expected_notes[i]}, Detectada: {extracted_notes[i]['name']} | start: {extracted_notes[i]['start']:.4f} |✖|")
                     note = extracted_notes[i]
                     error_time = format_seconds_to_mmss(note['start'])
                     note_played = note_to_solfege(note['name'])
@@ -80,11 +81,11 @@ class MusicalErrorService:
                                                       practice_id))
 
             # 4. guardar cada uno de los errores en la base de datos
-            
-            # stored_errors solamente se usó para colocar algo en los logs
-            print(f"HOLLAAAAAAA: {len(stored_errors)}")
-            print("NOTAS")
             print(stored_errors)
+            if stored_errors:
+                await self._store_musical_errors_batch(stored_errors, practice_id)
+            else:
+                logger.info(f"No musical errors found for practice_id={practice_id}")
 
             logger.info(
                 "Finished processing errors for uid=%s, practice_id=%s. Stored=%d",
@@ -105,3 +106,36 @@ class MusicalErrorService:
                 extra={"uid": uid, "practice_id": practice_id},
             )
             raise
+
+    async def _store_musical_errors_batch(self, errors: List[MusicalError], practice_id: int):
+        """Stores musical errors in batches to optimize database writes."""
+        batch_size = 5
+        total_errors = len(errors)
+        
+        logger.debug(f"Storing {total_errors} musical errors in batches of {batch_size} for practice_id={practice_id}")
+        
+        for i in range(0, total_errors, batch_size):
+            batch = errors[i:i + batch_size]
+            batch_num = (i // batch_size) + 1
+            total_batches = (total_errors + batch_size - 1) // batch_size
+            
+            logger.debug(f"Processing batch {batch_num}/{total_batches} ({len(batch)} errors)")
+            
+            tasks = []
+            for error in batch:
+                task = asyncio.create_task(self.music_repo.create(error))
+                tasks.append(task)
+                await asyncio.sleep(0.01)  # 10ms delay between task creation
+            
+            try:
+                await asyncio.gather(*tasks)
+                logger.debug(f"Batch {batch_num}/{total_batches} completed successfully")
+            except Exception as e:
+                logger.error(f"Error in batch {batch_num}/{total_batches}: {e}", exc_info=True)
+                raise
+            
+            # Delay between batches (except for last batch)
+            if i + batch_size < total_errors:
+                await asyncio.sleep(0.05)  # 50ms delay between batches
+        
+        logger.info(f"Successfully stored {total_errors} musical errors for practice_id={practice_id}")
