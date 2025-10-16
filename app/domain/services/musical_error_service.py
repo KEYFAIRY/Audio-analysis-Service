@@ -69,27 +69,27 @@ class MusicalErrorService:
             for i in range(len(expected_notes)):
                 # print(f"Esperada: {expected_notes[i]} | Detectada: {extracted_notes[i]['name']}")
                 if expected_notes[i] != extracted_notes[i]['name']:
-                    print(f"Esperada: {expected_notes[i]}, Detectada: {extracted_notes[i]['name']} | start: {extracted_notes[i]['start']:.4f} |✖|")
+                    print(f"Esperada: {expected_notes[i]}, Detectada: {extracted_notes[i]['name']} | start: {extracted_notes[i]['start']:.4f} |✖| Indice: {i}")
                 else:
-                    print(f"Esperada: {expected_notes[i]}, Detectada: {extracted_notes[i]['name']} | start: {extracted_notes[i]['start']:.4f} |✔|")
+                    print(f"Esperada: {expected_notes[i]}, Detectada: {extracted_notes[i]['name']} | start: {extracted_notes[i]['start']:.4f} |✔| Indice: {i}")
 
             
             for i in range(len(expected_notes)):
                 # print(f"Esperada: {expected_notes[i]} | Detectada: {extracted_notes[i]['name']}")
                 if expected_notes[i] != extracted_notes[i]['name']:
-                    print(f"Esperada: {expected_notes[i]}, Detectada: {extracted_notes[i]['name']} | start: {extracted_notes[i]['start']:.4f} |✖|")
+                    # print(f"Esperada: {expected_notes[i]}, Detectada: {extracted_notes[i]['name']} | start: {extracted_notes[i]['start']:.4f} |✖|")
                     note = extracted_notes[i]
                     error_time = format_seconds_to_mmss(note['start'])
                     note_played = note_to_solfege(note['name'])
                     correct_note = note_to_solfege(expected_notes[i])
 
-                    stored_errors.append(MusicalError(error_time,
+                    stored_errors.append(MusicalError(format_seconds_to_mmss(error_time),
                                                       note_played,
                                                       correct_note,
                                                       practice_id))
 
             # 4. guardar cada uno de los errores en la base de datos
-            print(stored_errors)
+            # print(stored_errors)
             if stored_errors:
                 await self._store_musical_errors_batch(stored_errors, practice_id)
             else:
