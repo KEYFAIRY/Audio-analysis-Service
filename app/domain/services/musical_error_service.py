@@ -65,6 +65,14 @@ class MusicalErrorService:
             # 4. Comparar las notas esperadas con las notas extraidas y guardar errores musicales.
             stored_errors: List[MusicalError] = []
             print(f"NOTAS: {len(expected_notes)}")
+
+            for i in range(len(expected_notes)):
+                # print(f"Esperada: {expected_notes[i]} | Detectada: {extracted_notes[i]['name']}")
+                if expected_notes[i] != extracted_notes[i]['name']:
+                    print(f"Esperada: {expected_notes[i]}, Detectada: {extracted_notes[i]['name']} | start: {extracted_notes[i]['start']:.4f} |✖|")
+                else:
+                    print(f"Esperada: {expected_notes[i]}, Detectada: {extracted_notes[i]['name']} | start: {extracted_notes[i]['start']:.4f} |✔|")
+
             
             for i in range(len(expected_notes)):
                 # print(f"Esperada: {expected_notes[i]} | Detectada: {extracted_notes[i]['name']}")

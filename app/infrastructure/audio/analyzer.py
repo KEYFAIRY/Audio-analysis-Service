@@ -11,6 +11,8 @@ from app.infrastructure.audio.model_manager import ModelManager
 
 
 def convert_mp4_to_wav(input_video: str, total_duration: float, split_time: float):
+    print(f"TOTAL DURATION: {total_duration}")
+
     clip = VideoFileClip(input_video)
     clip_first_half = clip.subclipped(0, split_time)
     clip_second_half = clip.subclipped(split_time, total_duration)
@@ -130,6 +132,11 @@ def extract_notes_audio(video_file, tempo, rhythmic_Value, notes_quantity):
     note_length_seconds = (60/tempo) * rhythmic_Value
     # Duracion neta de la ejecucion
     practice_duration = note_length_seconds * notes_quantity
+    print(f"TEMPO: {tempo}")
+    print(f"RITMO: {rhythmic_Value}")
+    print(f"CANTIDAD NOTAS: {notes_quantity}")
+
+
     TIME_SECTION = note_length_seconds 
     # Se crean contenedores sobre la ventana de analisis (Contenedor son espacios de ejecucion de cada nota)
     n_bins = int(math.ceil((practice_duration) / TIME_SECTION))

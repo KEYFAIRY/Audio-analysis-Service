@@ -27,7 +27,7 @@ note_solfege_dict = {
     "A": "La",
     "A#": "La#",
     "B": "Si",
-    "Nan": "Nan"
+    "Faltó": "Faltó"
 }
 
 def get_correct_notes(scale_name, type_scale, octaves):
