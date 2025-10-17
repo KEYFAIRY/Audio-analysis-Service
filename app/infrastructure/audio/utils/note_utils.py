@@ -13,7 +13,8 @@ solfege_note_dict = {
     "Sol#": "G#",
     "La": "A",
     "La#": "A#",
-    "Si": "B"
+    "Si": "B",
+    "Si#": "B#",
 }
 note_solfege_dict = {
     "C": "Do",
@@ -29,6 +30,7 @@ note_solfege_dict = {
     "A": "La",
     "A#": "La#",
     "B": "Si",
+    "B#": "Si#",
     "Faltó": "Faltó"
 }
 
