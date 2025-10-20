@@ -19,18 +19,25 @@ solfege_note_dict = {
 note_solfege_dict = {
     "C": "Do",
     "C#": "Do#",
+    "C##": "Do##",
     "D": "Re",
     "D#": "Re#",
+    "D##": "Re##",
     "E": "Mi",
     "E#": "Mi#",
+    "E##": "Mi##",
     "F": "Fa",
     "F#": "Fa#",
+    "F##": "Fa##",
     "G": "Sol",
     "G#": "Sol#",
+    "G##": "Sol##",
     "A": "La",
     "A#": "La#",
+    "A##": "La##",
     "B": "Si",
     "B#": "Si#",
+    "B##": "Si##",
     "Faltó": "Faltó"
 }
 
