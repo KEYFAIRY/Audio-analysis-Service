@@ -30,7 +30,11 @@ class DatabaseConnection:
                     self.async_database_url,
                     echo=False,
                     pool_pre_ping=True,
-                    pool_recycle=3600,
+                    pool_recycle=300,  # Reciclar conexiones cada 5 minutos
+                    pool_size=5,       # Máximo 5 conexiones en el pool
+                    max_overflow=10,   # Máximo 10 conexiones adicionales
+                    pool_timeout=30,   # Timeout para obtener conexión del pool
+                    isolation_level="READ_COMMITTED",  # Nivel de aislamiento consistente
                 )
                 self.async_session_factory = async_sessionmaker(
                     self.async_engine,
