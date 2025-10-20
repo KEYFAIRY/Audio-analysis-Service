@@ -60,8 +60,8 @@ def get_correct_notes(scale_name, type_scale, octaves):
 
 def solfege_to_note(solfege: str):
     """ Converts solfege into its note equivalent """
-    return solfege_note_dict[solfege]
+    return solfege_note_dict.get(solfege, "C")
 
 def note_to_solfege(note: str):
     """ Converts note into its solfege equivalent """
-    return note_solfege_dict[note]
+    return note_solfege_dict.get(note, "Faltó")
