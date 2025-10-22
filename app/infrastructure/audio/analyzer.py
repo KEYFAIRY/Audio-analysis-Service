@@ -1,3 +1,4 @@
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 import librosa
@@ -10,7 +11,7 @@ from app.infrastructure.audio.model_manager import ModelManager
 
 
 
-def convert_mp4_to_wav(input_video: str, total_duration: float, split_time: float):
+def convert_mp4_to_wav(input_video: str, practice_id: str, total_duration: float, split_time: float):
     print(f"TOTAL DURATION: {total_duration}")
 
     clip = VideoFileClip(input_video)
@@ -20,8 +21,10 @@ def convert_mp4_to_wav(input_video: str, total_duration: float, split_time: floa
     audio_first_half = clip_first_half.audio
     audio_second_half = clip_second_half.audio
 
-    audio_first_half.write_audiofile("piano_scale_1st.wav", fps=48000, codec="pcm_s24le", logger=None)
-    audio_second_half.write_audiofile("piano_scale_2nd.wav", fps=48000, codec="pcm_s24le", logger=None)
+    # Nombres unicos por practica (Evita condiciones de carrera)
+    audio_first_half.write_audiofile(f"piano_scale_1st_{practice_id}.wav", fps=48000, codec="pcm_s24le", logger=None)
+    audio_second_half.write_audiofile(f"piano_scale_2nd_{practice_id}.wav", fps=48000, codec="pcm_s24le", logger=None)
+
 
 def get_correct_notes(scale_name, type_scale, octaves):
     
@@ -123,7 +126,7 @@ def basic_pitch_model_executor(audio_path: str, edges: list, n_bins: int):
 
     return extracted_notes
 
-def extract_notes_audio(video_file, tempo, rhythmic_Value, notes_quantity):
+def extract_notes_audio(video_file, practice_id, tempo, rhythmic_Value, notes_quantity):
     # Blanca (half note):  2 beats
     # Negra (quarter note):  1 beat
     # Corchea (eighth note):  0.5 beats
@@ -147,39 +150,51 @@ def extract_notes_audio(video_file, tempo, rhythmic_Value, notes_quantity):
     note_executed_at_half = len(edges)//2
 
     
-    convert_mp4_to_wav(video_file, practice_duration, edges[note_executed_at_half - 1]) 
+    convert_mp4_to_wav(video_file, practice_id, practice_duration, edges[note_executed_at_half - 1]) 
+
+    audio_path_1st = f"piano_scale_1st_{practice_id}.wav"
+    audio_path_2nd = f"piano_scale_2nd_{practice_id}.wav"
 
     start_time = time.time()
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        future_l = executor.submit(
-            basic_pitch_model_executor,
-            audio_path="piano_scale_1st.wav",
-            edges=edges,
-            n_bins=n_bins
-        )
-        future_r = executor.submit(
-            basic_pitch_model_executor,
-            audio_path="piano_scale_2nd.wav",
-            edges=edges,
-            n_bins=n_bins
-        )
+    try:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future_l = executor.submit(
+                basic_pitch_model_executor,
+                audio_path=audio_path_1st,
+                edges=edges,
+                n_bins=n_bins
+            )
+            future_r = executor.submit(
+                basic_pitch_model_executor,
+                audio_path=audio_path_2nd,
+                edges=edges,
+                n_bins=n_bins
+            )
 
-        # Espera a que ambos hilos acaben
-        l_res = future_l.result()
-        r_res = future_r.result()
+            l_res = future_l.result()
+            r_res = future_r.result()
 
-    extracted_notes = []
-    if isinstance(l_res, list):
-        extracted_notes.extend(l_res)
-    if isinstance(r_res, list):
-        extracted_notes.extend(r_res)
-    end_time = time.time()
-    print(end_time - start_time)
+        extracted_notes = []
+        if isinstance(l_res, list):
+            extracted_notes.extend(l_res)
+        if isinstance(r_res, list):
+            extracted_notes.extend(r_res)
+        end_time = time.time()
+        print(end_time - start_time)
 
-    extracted_notes[0]['start'] = 0
-    for i in range(1, len(edges)-1):
-        edges[i] = edges[i] - 0.05
-        extracted_notes[i]['start'] = edges[i]
+        extracted_notes[0]['start'] = 0
+        for i in range(1, len(edges)-1):
+            edges[i] = edges[i] - 0.05
+            extracted_notes[i]['start'] = edges[i]
 
-    return extracted_notes
-
+        return extracted_notes
+    
+    finally:
+        # Clean up temporary audio files
+        for audio_path in [audio_path_1st, audio_path_2nd]:
+            try:
+                if os.path.exists(audio_path):
+                    os.remove(audio_path)
+                    print(f"Deleted temporary file: {audio_path}")
+            except Exception as e:
+                print(f"Warning: Could not delete {audio_path}: {e}")

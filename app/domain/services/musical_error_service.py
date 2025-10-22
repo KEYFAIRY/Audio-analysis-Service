@@ -61,7 +61,7 @@ class MusicalErrorService:
             solfege_of_scale = scale.split()[0]
             expected_notes = get_correct_notes(solfege_to_note(solfege_of_scale), scale_type, octaves)
             # 3. Analizar el audio a partir del video mp4.
-            extracted_notes = extract_notes_audio(path, bpm, figure, len(expected_notes))
+            extracted_notes = extract_notes_audio(path, practice_id, bpm, figure, len(expected_notes))
             # 4. Comparar las notas esperadas con las notas extraidas y guardar errores musicales.
             stored_errors: List[MusicalError] = []
             print(f"NOTAS: {len(expected_notes)}")
@@ -131,6 +131,7 @@ class MusicalErrorService:
             
             tasks = []
             for error in batch:
+                print(error)
                 task = asyncio.create_task(self.music_repo.create(error))
                 tasks.append(task)
                 await asyncio.sleep(0.01)  # 10ms delay between task creation

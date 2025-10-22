@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 from aiokafka import AIOKafkaConsumer
+from aiokafka.structs import TopicPartition
 from app.core.config import settings
 from app.application.use_cases.process_and_store_error import ProcessAndStoreErrorUseCase
 from app.domain.services.musical_error_service import MusicalErrorService
@@ -19,7 +20,7 @@ MAX_CONCURRENT_VIDEOS = 3
 semaphore = asyncio.Semaphore(MAX_CONCURRENT_VIDEOS)
 
 async def start_kafka_consumer(kafka_producer: KafkaProducer):
-    # Initialize dependencies
+
     mysql_repo = MySQLMusicalErrorRepository()
     mongo_repo = MongoMetadataRepo()
     video_repo = LocalVideoRepository()
@@ -39,29 +40,50 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
         enable_auto_commit=False,
         auto_offset_reset=settings.KAFKA_AUTO_OFFSET_RESET,
         group_id=settings.KAFKA_GROUP_ID,
+        max_poll_interval_ms=300000,  
+        session_timeout_ms=60000,     
+        heartbeat_interval_ms=20000   
     )
 
     await consumer.start()
     tasks = []
+    
     try:
         logger.info("Kafka consumer started")
 
-        async def process_message(dto: PracticeDataDTO):
-            async with semaphore:  # Limit concurrent executions
+        async def process_message(dto: PracticeDataDTO, tp: TopicPartition, offset: int):
+            """Process a single message with concurrency control"""
+            async with semaphore:
                 try:
-                    # Execute use case
                     errors = await use_case.execute(dto)  
-                    logger.info(f"Processed KafkaMessage with {len(errors)} errors")
-                    await consumer.commit()
+                    logger.info(
+                        f"Successfully processed message - "
+                        f"practice_id={dto.practice_id}, "
+                        f"offset={offset}, "
+                        f"errors_found={len(errors)}"
+                    )
+                    return (tp, offset, True)
                 except Exception as e:
-                    logger.error(f"Error processing message: {e}", exc_info=True)
+                    logger.error(
+                        f"Failed to process message - "
+                        f"practice_id={dto.practice_id}, "
+                        f"offset={offset}, "
+                        f"error={e}",
+                        exc_info=True
+                    )
+                    return (tp, offset, False)
 
         async for msg in consumer:
             try:
                 decoded = msg.value.decode()
-                logger.info(f"Received raw message: {decoded}")
+                logger.info(
+                    f"Received message - "
+                    f"offset={msg.offset}, "
+                    f"partition={msg.partition}, "
+                    f"payload={decoded[:100]}..."
+                )
 
-                # JSON → KafkaMessage
+                # Parse message
                 data = json.loads(decoded)
                 kafka_msg = KafkaMessage(**data)
 
@@ -72,26 +94,62 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                     time=kafka_msg.time,
                     scale=kafka_msg.scale,
                     scale_type=kafka_msg.scale_type,
-                    num_postural_errors=0,  # Placeholder
-                    num_musical_errors=0,   # Placeholder
+                    num_postural_errors=0,
+                    num_musical_errors=0,
                     duration=kafka_msg.duration,
                     bpm=kafka_msg.bpm,
                     figure=kafka_msg.figure,
                     octaves=kafka_msg.octaves,
                 )
 
-                # Schedule background task with concurrency control
-                task = asyncio.create_task(process_message(dto))
+                
+                tp = TopicPartition(msg.topic, msg.partition)
+                
+                
+                task = asyncio.create_task(process_message(dto, tp, msg.offset))
                 tasks.append(task)
+                logger.info(f"Scheduled task for offset {msg.offset}. Active tasks: {len([t for t in tasks if not t.done()])}")
 
+                # Check and commit completed tasks
+                done_tasks = [t for t in tasks if t.done()]
+                if done_tasks:
+                    logger.info(f"Found {len(done_tasks)} completed tasks to commit")
+                    for task in done_tasks:
+                        tp, offset, success = await task
+                        if success:
+                            await consumer.commit({tp: offset + 1})
+                            logger.info(f"Committed offset {offset + 1} for {tp}")
+                        else:
+                            logger.warning(f"Skipping commit for failed offset {offset}")
+                        tasks.remove(task)
+
+            except json.JSONDecodeError as e:
+                logger.error(
+                    f"Invalid JSON at offset {msg.offset}: {e}. "
+                    f"Raw message: {msg.value}",
+                    exc_info=True
+                )
+                
             except Exception as e:
-                logger.error(f"Error decoding or scheduling message: {e}", exc_info=True)
+                logger.error(
+                    f"Unexpected error scheduling message at offset {msg.offset}: {e}",
+                    exc_info=True
+                )
 
+    except asyncio.CancelledError:
+        logger.info("Kafka consumer cancelled")
+        raise
+    except Exception as e:
+        logger.error(f"Fatal error in Kafka consumer: {e}", exc_info=True)
+        raise
     finally:
+        logger.info("Stopping Kafka consumer...")
         await consumer.stop()
-        logger.info("Kafka consumer stopped")
-
+        
+        # Wait for remaining tasks
         if tasks:
-            logger.info("Waiting for all background tasks to finish...")
-            await asyncio.gather(*tasks)
-            logger.info("All background tasks finished.")
+            logger.info(f"Waiting for {len(tasks)} remaining tasks to finish...")
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            logger.info(f"All tasks finished. Results: {len(results)}")
+            
+        logger.info("Kafka consumer stopped")
