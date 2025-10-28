@@ -56,7 +56,7 @@ def basic_pitch_model_executor(audio_path: str, edges: list, n_bins: int):
     bins = [[] for _ in range(n_bins)]
 
     # Umbrales de Basic Pitch (ajustar si no detecta notas suaves/cortas)
-    ONSET_TH = 0.2       # más bajo -> más inicios detectados
+    ONSET_TH = 0.1       # más bajo -> más inicios detectados
     FRAME_TH = 0.05      # más bajo -> más frames sostenidos detectados
     MIN_NOTE_LEN_FR = 3  # en frames del modelo; más bajo -> permite notas más cortas
         
@@ -101,10 +101,20 @@ def basic_pitch_model_executor(audio_path: str, edges: list, n_bins: int):
     # A partir de los contenedores con las notas en su correspondiente espacio de tiempo, se seleccionan
     # como nota ejecutada, la mas fuerte dentro del espacio temporal
     extracted_notes = []
+
+
+    # print("BINS")
+    # print(bins)
+    # print(len(bins))
+
     for i in range(n_bins):
         section_start = edges[i]
         section_end = edges[i + 1]
+        # print(f"index BIN: {i}")
+        # print("notes in section")
+        
         notes_in_section = bins[i]
+        # print(notes_in_section)
         if not notes_in_section:
             continue
 
@@ -123,6 +133,9 @@ def basic_pitch_model_executor(audio_path: str, edges: list, n_bins: int):
                 strongest_note = sorted_notes[0]
                 strongest_note['name'] = "Faltó"
                 extracted_notes.append(strongest_note)
+
+    # print("EXTRACTED NOTES")
+    # print(extracted_notes)
             
 
     return extracted_notes
@@ -155,7 +168,7 @@ def extract_notes_audio(video_file, practice_id, tempo, rhythmic_Value, notes_qu
     
     note_executed_at_half = len(edges)//2
 
-    
+    # print(f"note_executed_at_half: {edges[note_executed_at_half - 1]}")
     convert_mp4_to_wav(video_file, practice_id, practice_duration, edges[note_executed_at_half - 1], starting_time) 
 
     audio_path_1st = f"piano_scale_1st_{practice_id}.wav"
@@ -186,13 +199,20 @@ def extract_notes_audio(video_file, practice_id, tempo, rhythmic_Value, notes_qu
         if isinstance(r_res, list):
             extracted_notes.extend(r_res)
         end_time = time.time()
-        print(end_time - start_time)
+        
+        print(f"PROCESAMIENTO: {end_time - start_time}")
+
+        # print(f"len edges: {len(edges)}")
+        # print(edges)
+        # print(f"len extracted: {len(extracted_notes)}")
 
         extracted_notes[0]['start'] = 0
         for i in range(0, len(edges)-1):
             edges[i] = (edges[i] + starting_time) - 0.05
             extracted_notes[i]['start'] = edges[i]
 
+
+    
         return extracted_notes
     
     finally:
