@@ -11,10 +11,11 @@ from app.infrastructure.audio.model_manager import ModelManager
 
 
 
-def convert_mp4_to_wav(input_video: str, practice_id: str, total_duration: float, split_time: float):
+def convert_mp4_to_wav(input_video: str, practice_id: str, total_duration: float, split_time: float, starting_time: float):
     print(f"TOTAL DURATION: {total_duration}")
 
     clip = VideoFileClip(input_video)
+    clip = clip.subclipped(starting_time)
     clip_first_half = clip.subclipped(0, split_time)
     clip_second_half = clip.subclipped(split_time, total_duration)
 
@@ -135,9 +136,14 @@ def extract_notes_audio(video_file, practice_id, tempo, rhythmic_Value, notes_qu
     note_length_seconds = (60/tempo) * rhythmic_Value
     # Duracion neta de la ejecucion
     practice_duration = note_length_seconds * notes_quantity
+
+    starting_time = (60/tempo) * 4
+
+    
     print(f"TEMPO: {tempo}")
     print(f"RITMO: {rhythmic_Value}")
     print(f"CANTIDAD NOTAS: {notes_quantity}")
+    print(f"TIEMPO INICIO: {starting_time}")
 
 
     TIME_SECTION = note_length_seconds 
@@ -150,7 +156,7 @@ def extract_notes_audio(video_file, practice_id, tempo, rhythmic_Value, notes_qu
     note_executed_at_half = len(edges)//2
 
     
-    convert_mp4_to_wav(video_file, practice_id, practice_duration, edges[note_executed_at_half - 1]) 
+    convert_mp4_to_wav(video_file, practice_id, practice_duration, edges[note_executed_at_half - 1], starting_time) 
 
     audio_path_1st = f"piano_scale_1st_{practice_id}.wav"
     audio_path_2nd = f"piano_scale_2nd_{practice_id}.wav"
@@ -183,8 +189,8 @@ def extract_notes_audio(video_file, practice_id, tempo, rhythmic_Value, notes_qu
         print(end_time - start_time)
 
         extracted_notes[0]['start'] = 0
-        for i in range(1, len(edges)-1):
-            edges[i] = edges[i] - 0.05
+        for i in range(0, len(edges)-1):
+            edges[i] = (edges[i] + starting_time) - 0.05
             extracted_notes[i]['start'] = edges[i]
 
         return extracted_notes
