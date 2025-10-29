@@ -3,19 +3,18 @@ import time
 from functools import wraps
 import os
 
-# metrics
-http_requests_total = Counter(
-    'audio_http_requests_total',
-    'Total HTTP requests',
-    ['method', 'endpoint', 'status']
-)
+# http_requests_total = Counter(
+#     'audio_http_requests_total',
+#     'Total HTTP requests',
+#     ['method', 'endpoint', 'status']
+# )
 
-http_request_duration_seconds = Histogram(
-    'audio_http_request_duration_seconds',
-    'HTTP request duration',
-    ['method', 'endpoint'],
-    buckets=(0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0)
-)
+# http_request_duration_seconds = Histogram(
+#     'audio_http_request_duration_seconds',
+#     'HTTP request duration',
+#     ['method', 'endpoint'],
+#     buckets=(0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0)
+# )
 
 kafka_messages_processed = Counter(
     'audio_kafka_messages_processed_total',
