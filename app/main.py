@@ -8,6 +8,7 @@ from app.infrastructure.audio.model_manager import ModelManager
 from app.infrastructure.database import mongo_connection, mysql_connection
 from app.infrastructure.kafka.kafka_consumer import start_kafka_consumer
 from app.infrastructure.kafka.kafka_producer import KafkaProducer
+from app.infrastructure.monitoring import metrics
 from contextlib import asynccontextmanager
 
 
@@ -53,6 +54,11 @@ async def lifespan():
         logger.exception("Error loading audio models")
         raise
 
+    # ---- Prometheus ----
+    logger.info("Starting Prometheus metrics server...")
+    metrics.start_metrics_server()
+    logger.info("Prometheus metrics server started")
+
     # ---- Kafka ----
     producer = KafkaProducer(bootstrap_servers=settings.KAFKA_BROKER)
     await producer.start()
@@ -61,6 +67,7 @@ async def lifespan():
     consumer_task = loop.create_task(start_kafka_consumer(producer))
 
     yield
+
 
     # ---- Shutdown ----
     consumer_task.cancel()

@@ -1,6 +1,8 @@
 import asyncio
 import json
 import logging
+import time
+
 from aiokafka import AIOKafkaConsumer
 from aiokafka.structs import TopicPartition
 from app.core.config import settings
@@ -13,6 +15,7 @@ from app.infrastructure.repositories.local_video_repo import LocalVideoRepositor
 from app.infrastructure.repositories.mysql_musical_error_repo import MySQLMusicalErrorRepository
 from app.infrastructure.repositories.mongo_metadata_repo import MongoMetadataRepo
 from app.application.dto.practice_data_dto import PracticeDataDTO
+from app.infrastructure.monitoring import metrics
 
 logger = logging.getLogger(__name__)
 
@@ -52,26 +55,57 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
         logger.info("Kafka consumer started")
 
         async def process_message(dto: PracticeDataDTO, tp: TopicPartition, offset: int):
-            """Process a single message with concurrency control"""
+            """Process a single message with concurrency control and instrument metrics"""
             async with semaphore:
+                # Get topic label once
+                topic_label = getattr(tp, 'topic', settings.KAFKA_INPUT_TOPIC)
+                
+                # Instrumentation: mark in-progress and start timer
+                metrics.videos_in_progress.inc()
+                start_ts = time.monotonic()
+                
                 try:
-                    errors = await use_case.execute(dto)  
+                    errors = await use_case.execute(dto)
+                    duration = time.monotonic() - start_ts
+                    
+                    # Record successful processing
+                    metrics.video_processing_duration.observe(duration)
+                    metrics.kafka_messages_processed.labels(
+                        topic=topic_label, 
+                        status='success'
+                    ).inc()
+                    
                     logger.info(
                         f"Successfully processed message - "
                         f"practice_id={dto.practice_id}, "
                         f"offset={offset}, "
-                        f"errors_found={len(errors)}"
+                        f"errors_found={len(errors)}, "
+                        f"duration={duration:.2f}s"
                     )
                     return (tp, offset, True)
+                    
                 except Exception as e:
+                    duration = time.monotonic() - start_ts
+                    
+                    # Record failed processing
+                    metrics.video_processing_duration.observe(duration)
+                    metrics.kafka_messages_processed.labels(
+                        topic=topic_label, 
+                        status='error'
+                    ).inc()
+                    
                     logger.error(
                         f"Failed to process message - "
                         f"practice_id={dto.practice_id}, "
                         f"offset={offset}, "
+                        f"duration={duration:.2f}s, "
                         f"error={e}",
                         exc_info=True
                     )
                     return (tp, offset, False)
+                    
+                finally:
+                    metrics.videos_in_progress.dec()
 
         async for msg in consumer:
             try:
@@ -102,13 +136,14 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                     octaves=kafka_msg.octaves,
                 )
 
-                
                 tp = TopicPartition(msg.topic, msg.partition)
-                
-                
+
                 task = asyncio.create_task(process_message(dto, tp, msg.offset))
                 tasks.append(task)
-                logger.info(f"Scheduled task for offset {msg.offset}. Active tasks: {len([t for t in tasks if not t.done()])}")
+                logger.info(
+                    f"Scheduled task for offset {msg.offset}. "
+                    f"Active tasks: {len([t for t in tasks if not t.done()])}"
+                )
 
                 # Check and commit completed tasks
                 done_tasks = [t for t in tasks if t.done()]
@@ -124,6 +159,13 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                         tasks.remove(task)
 
             except json.JSONDecodeError as e:
+                # Record invalid message
+                topic_label = getattr(msg, 'topic', settings.KAFKA_INPUT_TOPIC)
+                metrics.kafka_messages_processed.labels(
+                    topic=topic_label, 
+                    status='invalid'
+                ).inc()
+                
                 logger.error(
                     f"Invalid JSON at offset {msg.offset}: {e}. "
                     f"Raw message: {msg.value}",
