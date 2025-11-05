@@ -5,6 +5,7 @@ from app.domain.entities.musical_error import MusicalError
 from app.infrastructure.database.models.MusicalErrorModel import MusicalErrorModel
 from app.infrastructure.database.mysql_connection import mysql_connection
 from app.core.exceptions import DatabaseConnectionException
+from app.infrastructure.monitoring import metrics
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,11 @@ class MySQLMusicalErrorRepository(IMusicalErrorRepo):
                 await session.refresh(model)
 
                 logger.info(f"Musical error created with id={model.id} for practice_id={musical_error.id_practice}")
+                metrics.db_operations.labels(
+                        operation='Insert', 
+                        database='music_repo',
+                        status = 'success'
+                    ).inc()
                 return self._model_to_entity(model)
 
             except IntegrityError as e:
@@ -33,6 +39,11 @@ class MySQLMusicalErrorRepository(IMusicalErrorRepo):
                     f"Integrity error creating musical error for practice_id={musical_error.id_practice}: {e}",
                     exc_info=True
                 )
+                metrics.db_operations.labels(
+                        operation='Insert', 
+                        database='music_repo',
+                        status = 'failed'
+                    ).inc()
                 raise DatabaseConnectionException(f"Integrity error: {str(e)}")
 
             except SQLAlchemyError as e:

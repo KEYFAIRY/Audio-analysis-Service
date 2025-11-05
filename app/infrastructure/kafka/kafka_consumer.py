@@ -62,14 +62,11 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                 
                 # Instrumentation: mark in-progress and start timer
                 metrics.videos_in_progress.inc()
-                start_ts = time.monotonic()
                 
                 try:
                     errors = await use_case.execute(dto)
-                    duration = time.monotonic() - start_ts
                     
                     # Record successful processing
-                    metrics.video_processing_duration.observe(duration)
                     metrics.kafka_messages_processed.labels(
                         topic=topic_label, 
                         status='success'
@@ -80,15 +77,12 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                         f"practice_id={dto.practice_id}, "
                         f"offset={offset}, "
                         f"errors_found={len(errors)}, "
-                        f"duration={duration:.2f}s"
                     )
                     return (tp, offset, True)
                     
                 except Exception as e:
-                    duration = time.monotonic() - start_ts
                     
                     # Record failed processing
-                    metrics.video_processing_duration.observe(duration)
                     metrics.kafka_messages_processed.labels(
                         topic=topic_label, 
                         status='error'
@@ -98,7 +92,6 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                         f"Failed to process message - "
                         f"practice_id={dto.practice_id}, "
                         f"offset={offset}, "
-                        f"duration={duration:.2f}s, "
                         f"error={e}",
                         exc_info=True
                     )
@@ -116,6 +109,12 @@ async def start_kafka_consumer(kafka_producer: KafkaProducer):
                     f"partition={msg.partition}, "
                     f"payload={decoded[:100]}..."
                 )
+
+                topic_label = getattr(msg, 'topic', settings.KAFKA_INPUT_TOPIC)
+                metrics.kafka_messages_polled.labels(
+                    topic=topic_label
+                ).inc()
+                
 
                 # Parse message
                 data = json.loads(decoded)

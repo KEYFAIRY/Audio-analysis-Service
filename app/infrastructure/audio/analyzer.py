@@ -8,6 +8,7 @@ import math
 import time
 from music21 import stream, note, scale, pitch
 from app.infrastructure.audio.model_manager import ModelManager
+from app.infrastructure.monitoring import metrics
 
 
 
@@ -44,7 +45,7 @@ def get_correct_notes(scale_name, type_scale, octaves):
 
     return note_names
 
-def basic_pitch_model_executor(audio_path: str, edges: list, n_bins: int):
+def basic_pitch_model_executor(audio_path: str, edges: list, n_bins: int, edge_limiter: int):
 
     predict, ICASSP_2022_MODEL_PATH = ModelManager.get_basic_pitch()
 
@@ -56,7 +57,7 @@ def basic_pitch_model_executor(audio_path: str, edges: list, n_bins: int):
     bins = [[] for _ in range(n_bins)]
 
     # Umbrales de Basic Pitch (ajustar si no detecta notas suaves/cortas)
-    ONSET_TH = 0.1       # más bajo -> más inicios detectados
+    ONSET_TH = 0.2       # más bajo -> más inicios detectados
     FRAME_TH = 0.05      # más bajo -> más frames sostenidos detectados
     MIN_NOTE_LEN_FR = 3  # en frames del modelo; más bajo -> permite notas más cortas
         
@@ -116,7 +117,18 @@ def basic_pitch_model_executor(audio_path: str, edges: list, n_bins: int):
         notes_in_section = bins[i]
         # print(notes_in_section)
         if not notes_in_section:
-            continue
+            if i < edge_limiter:
+                empty_note = {
+                    "start": 0,
+                    "end": 0,
+                    "pitch": 1, 
+                    "name": "Faltó",
+                    "velocity": 57
+                }
+                extracted_notes.append(empty_note)
+                continue
+            else:
+                continue
 
         notes_in_section.sort(key=lambda x: x['start'])
 
@@ -181,13 +193,15 @@ def extract_notes_audio(video_file, practice_id, tempo, rhythmic_Value, notes_qu
                 basic_pitch_model_executor,
                 audio_path=audio_path_1st,
                 edges=edges,
-                n_bins=n_bins
+                n_bins=n_bins,
+                edge_limiter=note_executed_at_half
             )
             future_r = executor.submit(
                 basic_pitch_model_executor,
                 audio_path=audio_path_2nd,
                 edges=edges,
-                n_bins=n_bins
+                n_bins=n_bins,
+                edge_limiter=note_executed_at_half
             )
 
             l_res = future_l.result()
@@ -201,6 +215,7 @@ def extract_notes_audio(video_file, practice_id, tempo, rhythmic_Value, notes_qu
         end_time = time.time()
         
         print(f"PROCESAMIENTO: {end_time - start_time}")
+        metrics.video_processing_duration.observe(end_time - start_time)
 
         # print(f"len edges: {len(edges)}")
         # print(edges)
