@@ -6,8 +6,8 @@ from app.core.config import settings
 from app.core.logging_config import configure_logging
 from app.infrastructure.audio.model_manager import ModelManager
 from app.infrastructure.database import mongo_connection, mysql_connection
-from app.infrastructure.kafka.kafka_consumer import start_kafka_consumer
-from app.infrastructure.kafka.kafka_producer import KafkaProducer
+from app.messages.kafka_consumer import start_kafka_consumer
+from app.messages.kafka_producer import KafkaProducer
 from app.infrastructure.monitoring import metrics
 from contextlib import asynccontextmanager
 
