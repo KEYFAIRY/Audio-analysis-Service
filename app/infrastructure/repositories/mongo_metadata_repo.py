@@ -1,6 +1,7 @@
 from app.domain.repositories.i_metadata_repo import IMetadataRepo
 from app.infrastructure.database.mongo_connection import mongo_connection
 import logging
+from app.infrastructure.monitoring import metrics
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +27,21 @@ class MongoMetadataRepo(IMetadataRepo):
                 logger.info(
                     "Updated audio_done for uid=%s, practice=%s", uid, id_practice
                 )
+                metrics.db_operations.labels(
+                        operation='Update', 
+                        database='mongo_repo',
+                        status = 'success'
+                    ).inc()
                 return True
 
             logger.warning(
                 "No document updated for uid=%s, practice=%s", uid, id_practice
             )
+            metrics.db_operations.labels(
+                        operation='Update', 
+                        database='mongo_repo',
+                        status = 'error'
+                    ).inc()
             return False
 
         except Exception as e:

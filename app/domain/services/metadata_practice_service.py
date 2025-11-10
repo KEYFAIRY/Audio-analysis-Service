@@ -1,5 +1,5 @@
 from app.domain.repositories.i_metadata_repo import IMetadataRepo
-from app.infrastructure.monitoring import metrics
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -18,21 +18,11 @@ class MetadataPracticeService:
                     "Mongo update failed",
                     extra={"uid": uid, "practice_id": id_practice}
                 )
-                metrics.db_operations.labels(
-                        operation='Update', 
-                        database='mongo_repo',
-                        status = 'failed'
-                    ).inc()
             else:
                 logger.info(
                     "Mongo update successful",
                     extra={"uid": uid, "practice_id": id_practice}
                 )
-                metrics.db_operations.labels(
-                        operation='Update', 
-                        database='mongo_repo',
-                        status = 'success'
-                    ).inc()
 
             return updated
         except Exception as e:
