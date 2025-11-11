@@ -1,7 +1,7 @@
 services:
   audio-analysis-service:
     ports:
-      - "8015:8015"
+      - ${AUDIO_SERVICE_PORT:-8015}:${AUDIO_SERVICE_PORT:-8015}
     build:
       context: .
       dockerfile: Dockerfile
