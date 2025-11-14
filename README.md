@@ -26,12 +26,13 @@ Audio analysis service for detecting music mistakes
 │   │   ├── 📁 repositories/            # Repository interfaces (e.g., IMongoRepo, IMySQLRepo)
 │   │   └── 📁 services/                # Domain services (e.g., MusicalErrorService)
 │   │
+│   ├── 📁 messages/                    # Comunication with broker
+│   │
 │   ├── 📁 application/                 # Application layer (use case orchestration)
 │   │   ├── 📁 use_cases/               # Use cases (e.g., process_and_store_error.py)
 │   │   ├── 📁 dto/                     # Data Transfer Objects
 │   │
 │   ├── 📁 infrastructure/              # Technical implementations
-│   │   ├── 📁 kafka/                   # Kafka consumer and producer
 │   │   ├── 📁 database/                # Database adapters
 │   │   │   └── 📁 models/              # Database models
 │   │   └── 📁 repositories/            # Concrete repository implementations
@@ -42,9 +43,6 @@ Audio analysis service for detecting music mistakes
 │       └── utils.py                    # Helper functions
 │
 ├── 📁 tests/                           # Unit tests
-│   ├── 📁 domain/
-│   ├── 📁 application/
-│   └── 📁 infrastructure/
 │
 ├── 📁 scripts/                         # Helper scripts
 │   └── start.sh                        # Script to start the service
@@ -85,4 +83,43 @@ Developing unit tests
 
 ```bash
 docker compose down
+```
+
+
+## Steps to run unit tests
+
+### Create virtual environment :
+
+```bash
+python -m venv venv
+```
+
+### Activate virtual environment:
+
+```bash
+.\venv\Scripts\Activate.ps1
+```
+
+### Install pip:
+
+```bash
+python -m pip install --upgrade pip
+```
+
+### Install required test tools and project requirements:
+
+```bash
+pip install pytest pytest-asyncio pytest-cov
+```
+
+### Check installation:
+
+```bash
+pytest --version
+```
+
+### Execute test:
+
+```bash
+python -m pytest tests/[name.py] -v --tb=short
 ```
